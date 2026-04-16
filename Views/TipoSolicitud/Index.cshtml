@@ -1,0 +1,75 @@
+@{
+    ViewData["Title"] = "Seleccionar Tipo de Solicitud";
+}
+
+<div class="solicitud-wrapper">
+  <div class="solicitud-card">
+    <div class="titulo">Seleccionar Tipo de Solicitud</div>
+    <div class="subtitulo">Elige el tipo de solicitud que deseas registrar</div>
+
+    <div class="tipo-grid">
+      <a asp-controller="Enfermedad" asp-action="Index" class="type-link">
+        <div class="type-card bg-enfermedad">
+          <div class="icon-badge"><i class="bi bi-heart-pulse"></i></div>
+          <div class="card-content">
+            <h5>Enfermedad</h5>
+            <p>Descanso médico por enfermedad o tratamiento</p>
+          </div>
+        </div>
+      </a>
+
+      <a asp-controller="Maternidad" asp-action="Index" class="type-link">
+        <div class="type-card bg-maternidad">
+          <div class="icon-badge"><i class="bi bi-gender-female"></i></div>
+          <div class="card-content">
+            <h5>Maternidad</h5>
+            <p>Permiso pre y post natal</p>
+          </div>
+        </div>
+      </a>
+
+      <a asp-controller="Paternidad" asp-action="Index" class="type-link">
+        <div class="type-card bg-paternidad">
+          <div class="icon-badge"><i class="bi bi-person-fill"></i></div>
+          <div class="card-content">
+            <h5>Paternidad</h5>
+            <p>Permiso por nacimiento de hijo</p>
+          </div>
+        </div>
+      </a>
+
+      <a asp-controller="Fallecimiento" asp-action="Index" class="type-link">
+        <div class="type-card bg-fallecimiento">
+          <div class="icon-badge"><i class="bi bi-flower1"></i></div>
+          <div class="card-content">
+            <h5>Fallecimiento de Familiar</h5>
+            <p>Permiso por fallecimiento de familiar cercano</p>
+          </div>
+        </div>
+      </a>
+
+      <a asp-controller="EnfermedadFam" asp-action="Index" class="type-link">
+        <div class="type-card bg-enferfam">
+          <div class="icon-badge"><i class="bi bi-heart"></i></div>
+          <div class="card-content">
+            <h5>Enfermedad de Familiar</h5>
+            <p>Permiso para cuidar familiar enfermo</p>
+          </div>
+        </div>
+      </a>
+
+      <a asp-controller="Accidente" asp-action="Index" class="type-link">
+        <div class="type-card bg-accidente">
+          <div class="icon-badge"><i class="bi bi-cone-striped"></i></div>
+          <div class="card-content">
+            <h5>Accidente Laboral</h5>
+            <p>Solicitud por accidente en el lugar de trabajo</p>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet"><link rel="stylesheet" href="~/css/solicitud.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/tipo_sol.css" asp-append-version="true">
