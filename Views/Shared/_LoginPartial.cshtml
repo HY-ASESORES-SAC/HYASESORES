@@ -1,26 +1,36 @@
-﻿@using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> SignInManager
-@inject UserManager<IdentityUser> UserManager
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
 
 <ul class="navbar-nav">
-@if (SignInManager.IsSignedIn(User))
+@{
+    var user = HttpContextAccessor.HttpContext?.Session.GetString("User");
+}
+
+@if (!string.IsNullOrEmpty(user))
 {
+
+
+     <!-- 🔔 Apartado de Notificaciones -->
     <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity?.Name!</a>
+        <a class="nav-link text-dark" asp-controller="Notification" asp-action="Index">
+            🔔 Notificaciones
+        </a>
     </li>
     <li class="nav-item">
-        <form  class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
-            <button  type="submit" class="nav-link btn btn-link text-dark">Logout</button>
-        </form>
+        <span class="nav-link text-dark">👋 Hola, @user</span>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-controller="Auth" asp-action="Logout">Cerrar sesión</a>
     </li>
 }
 else
 {
     <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Register">Register</a>
+        <a class="nav-link text-dark" asp-controller="Auth" asp-action="Register">Registrarse</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login">Login</a>
+        <a class="nav-link text-dark" asp-controller="Auth" asp-action="Login">Iniciar sesión</a>
     </li>
 }
 </ul>
