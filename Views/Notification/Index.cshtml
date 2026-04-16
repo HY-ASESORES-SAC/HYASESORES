@@ -1,0 +1,281 @@
+@model IEnumerable<proyectoIngSoft.Models.Notification>
+
+@{
+    ViewData["Title"] = "Notificaciones";
+
+    // ---- Helper local (para serializar/estructura local) ----
+}
+
+@functions {
+    public class FakeNotification
+    {
+        public int Id { get; set; }
+        public string Titulo { get; set; } = "";
+        public string Mensaje { get; set; } = "";
+        public string Estado { get; set; } = "";
+        public DateTime Fecha { get; set; }
+        public string TimeAgo { get; set; } = "";
+
+        // Campos para detalle (solo usados localmente / visual)
+        public string EmpleadoNombre { get; set; } = "";
+        public string EmpleadoId { get; set; } = "";
+        public string Motivo { get; set; } = "";
+        public string Diagnostico { get; set; } = "";
+        public string Medico { get; set; } = "";
+        public string Centro { get; set; } = "";
+        public string Inicio { get; set; } = "";
+        public string Fin { get; set; } = "";
+        public string Duracion { get; set; } = "";
+    }
+
+    // calculadora simple de tiempo relativo
+    public string TiempoRelativo(DateTime fecha)
+    {
+        var ts = DateTime.Now - fecha;
+        if (ts.TotalMinutes < 1) return "Hace un momento";
+        if (ts.TotalMinutes < 60) return $"Hace {Math.Floor(ts.TotalMinutes)} minutos";
+        if (ts.TotalHours < 24) return $"Hace {Math.Floor(ts.TotalHours)} horas";
+        if (ts.TotalDays < 30) return $"Hace {Math.Floor(ts.TotalDays)} días";
+        if (ts.TotalDays < 365) return $"Hace {Math.Floor(ts.TotalDays / 30)} meses";
+        return $"Hace {Math.Floor(ts.TotalDays / 365)} años";
+    }
+}
+
+@{
+    // ---- Construir la lista de notificaciones local (usa Model si existe, sino usa ejemplos) ----
+    var notifsLocal = new List<FakeNotification>();
+
+    if (Model != null && Model.Any())
+    {
+        // Convertir elementos del modelo a la estructura local (llenando campos de detalle con placeholders)
+        foreach (var m in Model)
+        {
+            notifsLocal.Add(new FakeNotification
+            {
+                Id = m.Id,
+                Titulo = m.Titulo ?? "Nueva solicitud",
+                Mensaje = string.IsNullOrWhiteSpace(m.Mensaje) ? (m.Detalle ?? "") : m.Mensaje,
+                Estado = m.Estado ?? "Observacion",
+                Fecha = m.Fecha,
+                TimeAgo = TiempoRelativo(m.Fecha),
+                EmpleadoNombre = "(No disponible)",
+                EmpleadoId = "(No disponible)",
+                Motivo = "",
+                Diagnostico = "",
+                Medico = "",
+                Centro = "",
+                Inicio = "",
+                Fin = "",
+                Duracion = ""
+            });
+        }
+    }
+    else
+    {
+        // Ejemplos - se muestran si el Model está vacío
+        notifsLocal = new List<FakeNotification>
+        {
+            new FakeNotification {
+                Id = 1,
+                Titulo = "Nueva solicitud",
+                Mensaje = "Revisión médica pendiente",
+                Estado = "Observacion",
+                Fecha = DateTime.Now.AddMonths(-8),
+                TimeAgo = TiempoRelativo(DateTime.Now.AddMonths(-8)),
+                EmpleadoNombre = "Juan Pérez",
+                EmpleadoId = "EMP001",
+                Motivo = "Dolor lumbar",
+                Diagnostico = "Lumbalgia aguda",
+                Medico = "Dr. López",
+                Centro = "Clínica Sur",
+                Inicio = "01/01/2023",
+                Fin = "15/01/2023",
+                Duracion = "15 días"
+            },
+            new FakeNotification {
+                Id = 2,
+                Titulo = "Nueva solicitud",
+                Mensaje = "Aprobada por RRHH",
+                Estado = "Aprobada",
+                Fecha = DateTime.Now.AddMonths(-2),
+                TimeAgo = TiempoRelativo(DateTime.Now.AddMonths(-2)),
+                EmpleadoNombre = "María Gómez",
+                EmpleadoId = "EMP002",
+                Motivo = "Cirugía",
+                Diagnostico = "Apendicitis",
+                Medico = "Dra. Ramírez",
+                Centro = "Hospital Central",
+                Inicio = "10/03/2023",
+                Fin = "25/03/2023",
+                Duracion = "15 días"
+            },
+            new FakeNotification {
+                Id = 3,
+                Titulo = "Nueva solicitud",
+                Mensaje = "Rechazada por falta de documentos",
+                Estado = "Rechazada",
+                Fecha = DateTime.Now.AddDays(-21),
+                TimeAgo = TiempoRelativo(DateTime.Now.AddDays(-21)),
+                EmpleadoNombre = "Carlos Ruiz",
+                EmpleadoId = "EMP003",
+                Motivo = "Dolor de cabeza",
+                Diagnostico = "Migraña",
+                Medico = "Dr. Torres",
+                Centro = "Centro Médico Norte",
+                Inicio = "05/04/2023",
+                Fin = "08/04/2023",
+                Duracion = "3 días"
+            }
+        };
+    }
+
+    // Contadores (para la barra lateral)
+    var total = notifsLocal.Count;
+    var countObs = notifsLocal.Count(n => n.Estado == "Observacion");
+    var countAprob = notifsLocal.Count(n => n.Estado == "Aprobada");
+    var countRech = notifsLocal.Count(n => n.Estado == "Rechazada");
+
+    // Serializar para usar en JS
+    var jsonData = System.Text.Json.JsonSerializer.Serialize(notifsLocal);
+}
+
+<!-- Layout -->
+<div class="container-fluid">
+    <div class="row">
+        <!-- Barra lateral (contador) -->
+        <div class="col-2 border-end bg-light p-3" style="min-height:100vh;">
+            <h6 class="mb-3">Mensajes</h6>
+
+            <div class="d-grid gap-2">
+                <button class="btn btn-light d-flex align-items-center text-start notification-btn active" data-section="todos">
+                    <img src="~/images/iconoimagen.png" alt="icono" width="18" class="me-2" />
+                    Todos los mensajes
+                    <span class="badge bg-secondary ms-auto">@total</span>
+                </button>
+
+                <button class="btn btn-light d-flex align-items-center text-start notification-btn" data-section="observacion">
+                    <img src="~/images/reloj.png" alt="reloj" width="18" class="me-2" />
+                    En Observación
+                    <span class="badge bg-secondary ms-auto">@countObs</span>
+                </button>
+
+                <button class="btn btn-light d-flex align-items-center text-start notification-btn" data-section="aprobadas">
+                    <img src="~/images/comprobado.png" alt="aprobado" width="18" class="me-2" />
+                    Aprobadas
+                    <span class="badge bg-secondary ms-auto">@countAprob</span>
+                </button>
+
+                <button class="btn btn-light d-flex align-items-center text-start notification-btn" data-section="rechazadas">
+                    <img src="~/images/rechazado.png" alt="rechazado" width="18" class="me-2" />
+                    Rechazadas
+                    <span class="badge bg-secondary ms-auto">@countRech</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Lista de notificaciones (más amplia) -->
+        <div class="col-5 border-end p-3">
+            <h5>Notificaciones</h5>
+            <ul class="list-group" id="notificaciones-lista">
+                @foreach (var n in notifsLocal)
+                {
+                    string badgeClass = n.Estado == "Aprobada" ? "bg-success" : n.Estado == "Rechazada" ? "bg-danger" : "bg-warning text-dark";
+                    <li class="list-group-item notification-item d-flex justify-content-between align-items-start"
+                        data-id="@n.Id" style="cursor:pointer;">
+                        <div>
+                            <strong>@n.Titulo</strong><br />
+                            <small class="text-muted">@n.Mensaje</small>
+                        </div>
+
+                        <div class="text-end">
+                            <small class="text-muted">@n.TimeAgo</small><br />
+                            <span class="badge @badgeClass">@n.Estado</span>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <!-- Detalle (aparece a la derecha) -->
+        <div class="col-5 p-4" id="detalle-notificacion">
+            <h5 class="mb-3">Seleccione una notificación para ver sus detalles</h5>
+            <p class="text-muted">(Solo las notificaciones con estado <strong>Observación</strong> mostrarán la información médica y periodo de descanso).</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Datos serializados desde Razor
+        const notifs = @Html.Raw(jsonData);
+
+        // Función para obtener una notificación por id
+        function findNotif(id) {
+            return notifs.find(n => n.Id == id);
+        }
+
+        // Manejo del click en cada item
+        document.querySelectorAll(".notification-item").forEach(item => {
+            item.addEventListener("click", function () {
+                const id = this.getAttribute("data-id");
+                const n = findNotif(parseInt(id));
+
+                if (!n) return;
+
+                // Always show header + badge
+                let badgeHtml = "";
+                if (n.Estado === "Observacion") badgeHtml = `<span class="badge bg-warning text-dark">Solicitud en observación</span>`;
+                if (n.Estado === "Aprobada") badgeHtml = `<span class="badge bg-success">Solicitud aprobada</span>`;
+                if (n.Estado === "Rechazada") badgeHtml = `<span class="badge bg-danger">Solicitud rechazada</span>`;
+
+                // Si la notificación está en Observación --> mostrar los 3 apartados
+                if (n.Estado === "Observacion") {
+                    document.getElementById("detalle-notificacion").innerHTML = `
+                        <h4 class="mb-2">Nueva solicitud de cotización</h4>
+                        <div class="mb-3">${badgeHtml}</div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6>Información del empleado</h6>
+                                <p><strong>Nombre:</strong> ${n.EmpleadoNombre}</p>
+                                <p><strong>ID empleado:</strong> ${n.EmpleadoId}</p>
+                            </div>
+
+                            <div class="col-md-4">
+                                <h6>Información médica</h6>
+                                <p><strong>Motivo:</strong> ${n.Motivo}</p>
+                                <p><strong>Diagnóstico:</strong> ${n.Diagnostico}</p>
+                                <p><strong>Médico tratante:</strong> ${n.Medico}</p>
+                                <p><strong>Centro médico:</strong> ${n.Centro}</p>
+                            </div>
+
+                            <div class="col-md-4">
+                                <h6>Período de descanso</h6>
+                                <p><strong>Fecha de inicio:</strong> ${n.Inicio}</p>
+                                <p><strong>Fecha de fin:</strong> ${n.Fin}</p>
+                                <p><strong>Duración total:</strong> ${n.Duracion}</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Para Aprobada/Rechazada mostrar solo encabezado y badge
+                    document.getElementById("detalle-notificacion").innerHTML = `
+                        <h4 class="mb-2">Nueva solicitud de cotización</h4>
+                        <div class="mb-3">${badgeHtml}</div>
+                        <p><strong>Resumen:</strong> ${n.Mensaje}</p>
+                        <p class="text-muted">Información detallada sólo disponible para notificaciones en estado <strong>Observación</strong>.</p>
+                    `;
+                }
+            });
+        });
+
+        // Mantener comportamiento de botones de la barra lateral (activo visual)
+        document.querySelectorAll(".notification-btn").forEach(btn => {
+            btn.addEventListener("click", function () {
+                document.querySelectorAll(".notification-btn").forEach(b => b.classList.remove("active"));
+                this.classList.add("active");
+                // opcional: podrías filtrar la lista según data-section si quieres
+            });
+        });
+    </script>
+}

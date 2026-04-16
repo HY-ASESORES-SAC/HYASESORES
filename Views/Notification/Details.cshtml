@@ -1,0 +1,12 @@
+@model proyectoIngSoft.Models.Notification
+
+<h3>Detalle de Notificación</h3>
+
+<div class="card p-3">
+    <h5>@Model.Titulo</h5>
+    <p><strong>Estado:</strong> @Model.Estado</p>
+    <p><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy")</p>
+    <p>@Model.Mensaje</p>
+
+    <a href="@Url.Action("Index", "Notification")" class="btn btn-secondary">Volver</a>
+</div>
