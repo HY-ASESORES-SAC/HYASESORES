@@ -1,0 +1,299 @@
+@model List<proyectoIngSoft.Models.Lista>
+@{
+    ViewData["Title"] = "Comprobar con ESSALUD";
+}
+
+<div class="page-wrapper p-3">
+                <div class="topbar d-flex align-items-center justify-content-between mb-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <a href="javascript:history.back()" class="text-muted">&larr; Volver</a>
+                        <div>
+                            <h3 class="mb-0">Comprobar con ESSALUD</h3>
+                            <small class="text-muted">Lista de descansos médicos para comprobar con ESSALUD</small>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button id="btn-process-essalud" class="btn btn-dark rounded-pill px-4" disabled>
+                            Procesar con ESSALUD (<span id="selected-count">0</span>)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="summary d-flex align-items-center justify-content-between text-muted mb-2">
+                    <div>Mostrando <strong>@(Model?.Count() ?? 0)</strong> descansos médicos pendientes</div>
+                    <div><span class="dot bg-warning me-2" style="width:10px;height:10px;border-radius:50%;display:inline-block;"></span> Pendientes de comprobar</div>
+                </div>
+
+                <div class="card lista-card">
+                    <div class="card-body">
+                        <div class="select-all-row d-flex align-items-center justify-content-between mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="checkbox" id="select-all-top" />
+                                <label for="select-all-top" class="mb-0">Seleccionar todas las solicitudes (<span id="total-count">@(Model?.Count() ?? 0)</span>)</label>
+                                <span id="selected-badge" class="badge bg-primary ms-3" style="display:none">0 seleccionadas</span>
+                            </div>
+                            
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle lista-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width:48px"></th>
+                                        <th>Empleado</th>
+                                        <th>DNI</th>
+                                        <th>Razón del Descanso</th>
+                                        <th>Archivos</th>
+                                        <th>Fecha Registro</th>
+                                        <th>Estado</th>
+                                    <!--  <th>ESSALUD</th> -->
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-body">
+                                    @if (Model != null && Model.Any())
+                                    {
+                                            foreach (var item in Model)
+                                            {
+                                                    <tr data-id="@item.IdDescanso" data-estado="@item.Estado">
+                                                        <td style="width:48px">
+                                                            <input type="checkbox" class="row-select" data-id="@item.IdDescanso" />
+                                                        </td>
+                                                        <td>
+                                                            <div><strong>@item.Username @item.Apellidos</strong></div>
+                                                        </td>
+                                                        <td>@item.Dni</td>
+                                                        <td style="max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis">@item.Observaciones</td>
+                                                        <td class="text-center"><i class="bi bi-file-earmark-text"></i> 0</td>
+                                                        <td>@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
+                                                        
+                                                        <td class="estado-cell">
+                                                        @if (item.Estado == "Válido")
+                                                            {
+                                                                <span class="badge bg-success">Válido</span>
+                                                            }
+                                                            else if (item.Estado == "No válido")
+                                                            {
+                                                                <span class="badge bg-danger">No válido</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="badge bg-light text-dark">En Proceso</span>
+                                                            }
+                                                        </td>
+                                                        <td class="essalud-cell"><span class="pill-essalud">En Proceso</span></td>
+                                                    </tr>                                                    
+                                            }
+                                    }
+                                    else
+                                    {
+                                            <tr><td colspan="9" class="text-center text-muted py-4">No hay solicitudes para mostrar.</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Confirm modal -->
+            <div class="modal fade" id="confirmProcessModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content rounded-3">
+                        <div class="modal-body text-center p-4">
+                            <h5>Procesar con ESSALUD</h5>
+                            <p>¿Deseas procesar las <strong><span id="modal-selected-count">0</span></strong> solicitudes seleccionadas con ESSALUD?</p>
+                            <p class="text-muted small">El sistema asignará aleatoriamente un estado (Válido / No válido) para cada solicitud (simulación).</p>
+                            <div class="d-grid gap-2">
+                                <button id="confirm-process-btn" class="btn btn-primary">CONFIRMAR PROCESAMIENTO</button>
+                                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HU-07 modal (simulado) -->
+            <div class="modal fade" id="hu07Modal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">HU-07 Revisión de solicitudes</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr><th>ID</th><th>Empleado</th><th>Resultado</th><th>Observación</th></tr>
+                                    </thead>
+                                    <tbody id="hu07-summary-body"><tr><td colspan="4" class="text-muted">Resultados generados en la tabla principal.</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @section Scripts {
+                <script>
+                    (function(){
+                        const selectAllTop = document.getElementById('select-all-top');
+                        const rowSelector = '.row-select';
+                        const selectedCountEl = document.getElementById('selected-count');
+                        const selectedBadge = document.getElementById('selected-badge');
+                        const totalCountEl = document.getElementById('total-count');
+                        const btnProcess = document.getElementById('btn-process-essalud');
+                        const modalSelectedCount = document.getElementById('modal-selected-count');
+
+                        function rows(){ return Array.from(document.querySelectorAll(rowSelector)); }
+                        function updateUI(){
+                            const sel = rows().filter(r=>r.checked).length;
+                            selectedCountEl.textContent = sel;
+                            modalSelectedCount.textContent = sel;
+                            if(sel>0){ selectedBadge.style.display='inline-block'; selectedBadge.textContent = sel+' seleccionadas'; } else { selectedBadge.style.display='none'; }
+                            btnProcess.disabled = sel===0;
+                        }
+
+                        // select all checkbox
+                        selectAllTop?.addEventListener('change', function(){
+                            rows().forEach(cb=>{ if(!cb.disabled) cb.checked = this.checked; });
+                            updateUI();
+                        });
+
+                        // individual checkbox handling (event delegation)
+                        document.addEventListener('change', function(e){
+                            if(e.target && e.target.matches(rowSelector)){
+                                if(!e.target.checked) selectAllTop.checked = false;
+                                if(rows().length>0 && rows().filter(r=>!r.disabled).every(r=>r.checked)) selectAllTop.checked = true;
+                                updateUI();
+                            }
+                        });
+
+                        // open confirm modal
+                        btnProcess?.addEventListener('click', function(){
+                            const sel = rows().filter(r=>r.checked).length;
+                            modalSelectedCount.textContent = sel;
+                            const m = new bootstrap.Modal(document.getElementById('confirmProcessModal'));
+                            m.show();
+                        });
+
+                        // confirm processing
+                            document.getElementById('confirm-process-btn')?.addEventListener('click', function(){
+                            const confirmModalEl = document.getElementById('confirmProcessModal');
+                            const inst = bootstrap.Modal.getInstance(confirmModalEl);
+                            if(inst) inst.hide();
+
+                            const selected = rows().filter(r=>r.checked && !r.disabled);
+                            const hu07Body = document.getElementById('hu07-summary-body'); hu07Body.innerHTML = '';
+
+                            // simulate processing each selected
+                                const updates = [];
+
+                                selected.forEach(cb => {
+                                const id = cb.dataset.id;
+                                const tr = document.querySelector(`tr[data-id="${id}"]`);
+                                if (!tr) return;
+                                const valido = Math.random() < 0.7;
+                                const estadoTexto = valido ? "Válido" : "No válido";
+                                const ess = valido ? '<span class="badge bg-success">Válido</span>' : '<span class="badge bg-danger">No válido</span>';
+
+                                const estadoCell = tr.querySelector('.estado-cell');
+                                if (estadoCell) estadoCell.innerHTML = ess;
+                                cb.checked = false; cb.disabled = true;
+                                updates.push({ idDescanso: parseInt(id), estado: estadoTexto });
+
+                                const empleado = tr.children[1]?.innerText?.trim() || '';
+                                const row = document.createElement('tr');
+                                row.innerHTML = `<td>${id}</td><td>${empleado}</td><td>${estadoTexto}</td><td>${estadoTexto === "Válido" ? "Solicitud validada" : "Solicitud no válida"}</td>`;
+                                document.getElementById('hu07-summary-body').appendChild(row);
+                            });
+                            // 🔥 Guardar cambios en BD
+                            fetch('/SistemaSolicitud/ActualizarEstadosESSALUD', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(updates)
+                            })
+                            .then(res => res.ok ? res.json() : Promise.reject("Error al guardar estados"))
+                            .then(resp => console.log("Estados guardados:", resp))
+                            .catch(err => console.error(err));
+
+
+                            // reset
+                            selectAllTop.checked = false; updateUI();
+
+                            // show HU-07 modal
+                            @* const hm = new bootstrap.Modal(document.getElementById('hu07Modal'));
+                            hm.show(); *@
+                            const hm = new bootstrap.Modal(document.getElementById('hu07Modal'));
+                            hm.show();
+
+                            // luego de 1 segundo, mostrar el modal real que carga la vista Lista/Index.cshtml
+                            setTimeout(() => {
+                                hm.hide();
+
+                                // Cargar la vista Index de ListaController dentro del nuevo modal
+                                const modalBody = document.getElementById("modalListaBody");
+                                modalBody.innerHTML = `
+                                    <div class="text-center text-muted py-5">
+                                        <div class="spinner-border text-primary" role="status"></div>
+                                        <p class="mt-2">Cargando interfaz de revisión...</p>
+                                    </div>
+                                `;
+
+                                // Llamar al controlador ListaController.Index
+                                fetch("/Lista/Index")
+                                    .then(res => {
+                                        if (!res.ok) throw new Error("Error al cargar la vista Lista/Index");
+                                        return res.text();
+                                    })
+                                    .then(html => {
+                                        modalBody.innerHTML = html;
+                                    })
+                                    .catch(err => {
+                                        modalBody.innerHTML = `
+                                            <div class="alert alert-danger text-center">⚠️ No se pudo cargar la vista de revisión.<br>${err.message}</div>
+                                        `;
+                                    });
+
+                                const modalLista = new bootstrap.Modal(document.getElementById('modalLista'));
+                                modalLista.show();
+                            }, 1000);
+
+                        });
+
+                        // inicializar contador
+                        updateUI();
+                    })();
+                </script>
+
+                <style>
+                    /* Card and table styling to match screenshots */
+                    .lista-card { border-radius:12px; box-shadow: 0 2px 8px rgba(22,28,36,0.06); }
+                    .lista-table thead th { border-bottom: none; font-weight:600; color:#46505A; }
+                    .lista-table tbody tr { border-bottom: 1px solid #f1f3f5; }
+                    .lista-table tbody tr:hover { background: #fbfdff; }
+                    .pill-essalud { background:#fff3cd; color:#8a6d00; padding:6px 10px; border-radius:12px; display:inline-block; }
+                    .select-all-row { border:1px solid #eef2f5; padding:12px 16px; border-radius:8px; }
+                    .lista-card .card-body { padding:16px; }
+                    .topbar h3 { font-size:18px; margin-bottom:0; }
+                    .dot { display:inline-block; }
+                    .badge.bg-primary { background:#1f6feb; }
+                    input[type=checkbox] { width:18px; height:18px; }
+                        /* Ocultar visualmente la columna ESSALUD pero mantener en DOM */
+                        .lista-table thead th:nth-child(9),
+                        .lista-table tbody td.essalud-cell {
+                            display: none !important;
+                        }
+
+                </style>
+            }
+
+
+
+
+</style>

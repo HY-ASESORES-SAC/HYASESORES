@@ -1,0 +1,16 @@
+@model List<proyectoIngSoft.Models.Notification>
+
+<ul class="list-group list-group-flush">
+    @foreach (var noti in Model)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center" style="cursor:pointer;" onclick="cargarDetalle(@noti.Id)">
+            <div>
+                <strong>@noti.Titulo</strong><br />
+                <small>@noti.Mensaje</small>
+            </div>
+            <span class="badge @(noti.Estado=="Aprobada" ? "bg-success" : noti.Estado=="Rechazada" ? "bg-danger" : "bg-warning text-dark")">
+                @noti.Estado
+            </span>
+        </li>
+    }
+</ul>

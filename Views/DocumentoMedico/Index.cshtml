@@ -1,0 +1,174 @@
+@model List<proyectoIngSoft.Models.DocumentoMedico> 
+@{
+    ViewData["Title"] = "Documentos Médicos";
+}
+
+<div class="container mt-4">
+    <h2 style="text-align: center;" class="mb-3">Subir Documentos Médicos</h2>
+    <p style="text-align: center;" class="text-muted">Sube tu descarso médico correspondiente a tu solicitud<br />
+        <small>Máximo 5 documentos PDF</small>
+    </p>
+
+    <!-- Caja Drag & Drop -->
+    <form asp-action="Subir" method="post" enctype="multipart/form-data" id="uploadForm">
+    <input type="hidden" name="descansoId" value="@ViewBag.DescansoId" />
+        <div class="border rounded d-flex flex-column justify-content-center align-items-center p-5 mb-3" 
+             style="border: 2px dashed #ccc; cursor: pointer;" 
+             id="dropArea">
+
+            <div class="d-flex justify-content-center align-items-center rounded" style="background-color: #dadcdf; width: 60px; height: 60px;">
+                <i class="bi bi-upload fs-2 text-dark"></i>
+            </div>
+            <p class="mt-2"><b>Arrastra y suelta</b> tus archivos PDF aquí<br />
+                o haz clic para seleccionar archivos
+            </p>
+            <input type="file" name="archivos" id="fileInput" multiple accept="application/pdf" hidden />
+            <button type="button" class="btn btn-outline-dark mt-2" onclick="document.getElementById('fileInput').click()"><b>Seleccionar Archivos</b></button>
+        </div>
+    <!-- Documentos ya subidos -->
+    <h3 class="mt-4">Documentos Médicos Subidos</h3>
+
+    @if (Model != null && Model.Any())
+    {
+        <ul class="list-group mt-3">
+            @foreach (var doc in Model)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-file-earmark-pdf text-danger"></i> @doc.Nombre</span>
+                    <span class="badge bg-secondary">@doc.TamañoKB</span>
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p class="text-muted"></p>
+    }
+        <!-- Lista de archivos seleccionados -->
+        <div id="fileList" class="mb-3"></div>
+
+        <button type="submit" class="btn btn-dark w-50 d-block mx-auto">
+            <i class="bi bi-send"></i> Enviar Documentos Médicos
+        </button>
+    </form>
+
+    <hr />
+    <!-- Previsualizar PDF -->
+    <div class="modal fade" id="pdfModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="pdfModalLabel"></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <iframe id="pdfViewer" src="" width="100%" height="500px" style="border:none;"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body">
+                @TempData["Message"]
+            </div>
+        </div>
+    </div>
+</div>
+    
+@section Scripts {
+    <script>
+        const fileInput = document.getElementById("fileInput");
+        const fileList = document.getElementById("fileList");
+        const dropArea = document.getElementById("dropArea");
+
+        // Mostrar archivos seleccionados
+        fileInput.addEventListener("change", () => {
+            fileList.innerHTML = "";
+            [...fileInput.files].forEach((file, index) => {
+                let fileURL = URL.createObjectURL(file);
+                let fileSizeKB = (file.size / 1024).toFixed(2); // convertir a KB con 2 decimales
+
+                let item = document.createElement("div");
+                item.classList.add("d-flex", "justify-content-between", "align-items-center", "border", "rounded", "p-2", "mb-2");
+
+                item.innerHTML = `
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-file-earmark-pdf text-danger me-2"></i> 
+                        <span>${file.name}</span>
+                        <span class="badge bg-secondary ms-2">${fileSizeKB} KB</span>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-link text-dark p-0 me-2" onclick="previewFile('${fileURL}', '${file.name}')">
+                            <i class="bi bi-eye fs-5"></i>
+                        </button>
+                        <button type="button" class="btn btn-link text-danger p-0" onclick="removeFile(${index})">
+                            <i class="bi bi-x fs-5"></i>
+                        </button>
+                    </div>
+                `;
+                fileList.appendChild(item);
+            });
+            // Notificación al seleccionar archivos
+            showToast(`${fileInput.files.length} archivo(s) subidos exitosamente.`);
+        });
+
+        
+        dropArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropArea.style.backgroundColor = "#f0f8ff";
+        });
+
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.style.backgroundColor = "transparent";
+        });
+
+        dropArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            fileInput.files = e.dataTransfer.files;
+            fileInput.dispatchEvent(new Event("change"));
+            dropArea.style.backgroundColor = "transparent";
+        });
+
+        // Eliminar archivo de la lista (visual)
+        function removeFile(index) {
+            let dt = new DataTransfer();
+            let files = [...fileInput.files];
+            files.splice(index, 1);
+            files.forEach(f => dt.items.add(f));
+            fileInput.files = dt.files;
+            fileInput.dispatchEvent(new Event("change"));
+        }
+        // Previsualizar PDF
+        function previewFile(url, name) {
+            document.getElementById("pdfViewer").src = url;
+            document.getElementById("pdfModalLabel").innerText = name;
+            let modal = new bootstrap.Modal(document.getElementById("pdfModal"));
+            modal.show();
+        }
+        function showToast(message) {
+    let toastEl = document.getElementById('successToast');
+    if (toastEl) {
+        toastEl.querySelector('.toast-body').textContent = message;
+        let toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    }
+}
+
+        // Mostrar el mensaje del servidor (al enviar)
+        @if (TempData["Message"] != null)
+{
+    <text>
+        document.addEventListener("DOMContentLoaded", () => {
+            showToast("@TempData["Message"]");
+            setTimeout(() => {
+                window.location.href = '/ValidarDatos/Index';
+            }, 1500); // espera la notificacion
+        });
+    </text>
+}
+    </script>
+}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">

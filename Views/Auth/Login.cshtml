@@ -1,0 +1,146 @@
+
+<div class="auth-page">
+    <div class="auth-card">
+        <h2>SISTEMA DE AUTENTICACION</h2>
+        <p class="subtitle">Accede a tu cuenta o regístrate</p>
+
+        <!-- Pestañas visuales (no modifican variables del form) -->
+        <div class="tabs" aria-hidden="true">
+            <a asp-controller="Auth" asp-action="Login" class="tab @(ViewData["ActiveTab"] as string == "login" ? "active" : "")">Iniciar Sesión</a>
+            <a asp-controller="Auth" asp-action="Register" class="tab @(ViewData["ActiveTab"] as string == "register" ? "active" : "")">Crear Cuenta</a>
+        </div>
+
+        <!-- Tu formulario original - NO CAMBIÉ los name ni la acción -->
+        <form asp-action="Login" method="post">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control" />
+
+            <label>Contraseña</label>
+            <input type="password" name="password" class="form-control" />
+
+            <button type="submit" class="btn-primary">Ingresar</button>
+        </form>
+
+        <!-- Mensaje de error: lo dejé funcional con la misma lógica Razor -->
+        @if(ViewBag.Error != null){
+            <p class="error-msg">@ViewBag.Error</p>
+        }
+    </div>
+</div>
+
+<style>
+/* Reset y fuente (sin variables) */
+*{box-sizing:border-box}
+html,body{
+  background:#ffffff;
+  font-family:"Inter","Segoe UI",Roboto,Arial,sans-serif;
+  margin:0;
+  padding:0;
+  color:#111;
+}
+
+/* Contenedor centrado */
+.auth-page{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:40px 16px;
+}
+
+/* Card */
+.auth-card{
+  width:720px;
+  max-width:96%;
+  background:#ffffff;
+  border-radius:18px;
+  padding:44px 56px;
+  box-shadow:0 10px 30px rgba(13,13,20,0.08);
+  text-align:center;
+}
+
+h2{ margin:0; font-size:28px; font-weight:700; color:#0f1724; }
+.subtitle{ margin-top:8px; color:#6b7280; font-size:14px; }
+
+/* Tabs */
+h2{ margin:0; font-size:28px; font-weight:700; color:#0f1724; }
+.subtitle{ margin-top:8px; color:#6b7280; font-size:14px; }
+
+/* Tabs convertidas en links */
+.tabs{
+  margin:26px auto 28px;
+  width:420px;
+  max-width:100%;
+  background:#f2f2f4;
+  border-radius:999px;
+  padding:6px;
+  display:flex;
+  gap:6px;
+}
+.tab{
+  flex:1;
+  text-align:center;
+  padding:10px 18px;
+  border-radius:999px;
+  font-weight:600;
+  font-size:14px;
+  cursor:pointer;
+  user-select:none;
+  text-decoration:none;
+  color:#51545b;
+  transition: all 0.2s ease-in-out; /* animación suave */
+}
+.tab.active{
+  background:#ffffff;
+  box-shadow:0 4px 10px rgba(9,10,20,0.06);
+  color:#0b1020;
+}
+/* 🔥 Hover efecto negro */
+.tab:hover{
+  background:#0b0b2a;
+  color:#fff;
+}
+
+/* Form */
+form{ margin-top:4px; text-align:left; }
+label{ display:block; font-weight:600; margin-bottom:8px; margin-top:18px; color:#111827; }
+input.form-control{
+  width:100%;
+  padding:14px 18px;
+  border-radius:10px;
+  border:none;
+  background:#f6f6f7; /* antes --input-bg */
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+  font-size:15px;
+  outline:none;
+}
+input.form-control::placeholder{ color:#9ca3af; }
+
+/* Botón (gradiente usando los colores originales) */
+.btn-primary{
+  width:100%;
+  padding:14px 18px;
+  font-size:16px;
+  font-weight:700;
+  border-radius:12px;
+  margin-top:26px;
+  cursor:pointer;
+  border:none;
+  background-image: linear-gradient(90deg, #070318, #0b0b2a); /* antes --accent-grad-* */
+  color:#fff;
+  box-shadow:0 8px 20px rgba(8,8,20,0.18);
+}
+
+/* Error */
+.error-msg{ color:#e11d48; margin-top:12px; font-weight:600; }
+
+/* Responsive: en Razor escribe @@media para que no lo interprete como código */
+@@media (max-width:480px){
+  .auth-card{ padding:28px 20px; }
+  .tabs{ width:100%; }
+}
+</style>
+
+@if(ViewBag.Error != null){
+    <p style="color:red">@ViewBag.Error</p>
+}

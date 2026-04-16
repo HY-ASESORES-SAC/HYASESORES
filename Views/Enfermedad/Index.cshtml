@@ -1,0 +1,250 @@
+@model proyectoIngSoft.Models.Enfermedad
+
+@{
+    ViewData["Title"] = "Registrar Enfermedad";
+}
+
+<div class="solicitud-container">
+    <div class="header-bar">
+        <a asp-controller="TipoSolicitud" asp-action="Index" class="btn-back">
+            ← Volver
+        </a>
+        <div class="header-right">
+            <span class="label-inline">Solicitud de:</span>
+            <select id="tipoSolicitud" class="form-select">
+                <option value="@Url.Action("Index","Fallecimiento")">Fallecimiento Familiar</option>
+                <option value="@Url.Action("Index","Maternidad")">Maternidad</option>
+                <option value="@Url.Action("Index","Accidente")">Accidente</option>
+                <option value="@Url.Action("Index","Enfermedad")" selected>Enfermedad</option>
+                <option value="@Url.Action("Index","Paternidad")">Paternidad</option>
+                <option value="@Url.Action("Index","EnfermedadFam")">Enfermedad Familiar</option>
+            </select>
+        </div>
+    </div>
+
+    
+
+    <form method="post" asp-action="Registrar" class="solicitud-form">
+
+        <!-- Fila 1 -->
+        <div class="form-row">
+            <div class="form-group">
+                <label>Subtipo de Solicitud</label>
+                <select asp-for="SubtipoSol" class="form-control">
+                    <option value="">-- Seleccione --</option>
+                    <option>EsSalud</option>
+                    <option>Particular</option>
+                    <option>Accidente Laboral</option>
+                    <option>Accidente de Transito</option>
+                </select>
+                <span asp-validation-for="SubtipoSol" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Fila 2 -->
+        <div class="form-row">
+            <div class="form-group">
+                <label>Fecha de Inicio</label>
+                <input asp-for="FechaIni" type="date" class="form-control" />
+                <span asp-validation-for="FechaIni" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Fecha de Fin</label>
+                <input asp-for="FechaFin" type="date" class="form-control" />
+                <span asp-validation-for="FechaFin" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Fila 3 -->
+        <div class="form-row">
+            <div class="form-group">
+                <label>Nombre del Médico</label>
+                <input asp-for="NombreMedi" class="form-control" />
+                <span asp-validation-for="NombreMedi" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Centro Médico</label>
+                <input asp-for="CentroMedico" class="form-control" />
+                <span asp-validation-for="CentroMedico" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Fila 4 -->
+        <div class="form-row">
+            <div class="form-group">
+                <label>Días de Descanso</label>
+                <input asp-for="DiasDesc" type="number" min="1" class="form-control" />
+                <span asp-validation-for="DiasDesc" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Fila 5 -->
+        <div class="form-row">
+            <div class="form-group">
+                <label>Diagnóstico</label>
+                <textarea asp-for="Diagnostico" class="form-control" placeholder="Escriba el diagnóstico"></textarea>
+                <span asp-validation-for="Diagnostico" class="text-danger"></span>
+            </div>
+        </div>
+
+        <!-- Fila 6 -->
+        <div class="form-row">
+            <div class="form-group">
+                <label>Descripción de la Enfermedad</label>
+                <textarea asp-for="DescEnfe" class="form-control" placeholder="Detalles adicionales"></textarea>
+                <span asp-validation-for="DescEnfe" class="text-danger"></span>
+            </div>
+        </div>
+
+     
+
+        <!-- Botón -->
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">Registrar Enfermedad</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById("tipoSolicitud").addEventListener("change", function () {
+        if (this.value) {
+            window.location.href = this.value;
+        }
+    });
+</script>
+
+<style>
+/* ====== CONTENEDOR ====== */
+.solicitud-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* ====== HEADER ====== */
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0px;
+  padding: 10px 5px;
+}
+.btn-back {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #111827;
+  text-decoration: none;
+  font-weight: bold;
+}
+.btn-back:hover {
+  background: #f3f4f6;
+}
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.label-inline {
+  font-weight: 500;
+  font-size: 14px;
+  color: #111827;
+  white-space: nowrap;
+}
+
+/* ====== FORM ====== */
+.solicitud-form {
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 10px 0px;
+  background: #fff;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* separación compacta */
+  font-family: 'Segoe UI', sans-serif;
+}
+.form-title {
+    margin-bottom: 15px;
+    font-size: 20px;
+    font-weight: 600;
+}
+.solicitud-form .form-row {
+    display: flex;
+    gap: 15px; /* separación mínima entre columnas */
+    margin-bottom: 6px;
+}
+.solicitud-form .form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.solicitud-form label {
+    font-weight: 500;
+    margin-bottom: 3px;
+}
+.solicitud-form .form-control {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    background: #f9f9f9;
+}
+
+/* ====== DOCUMENTOS ====== */
+.documentos-section h4 {
+    margin: 15px 0 8px;
+    font-size: 16px;
+}
+.upload-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.upload-area {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 25px;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    position: relative;
+}
+.upload-area input[type="file"] {
+    position: absolute;
+    opacity: 0;
+    top: 0; left: 0; width: 100%; height: 100%;
+    cursor: pointer;
+}
+.upload-area span {
+    font-size: 12px;
+    color: #999;
+}
+
+/* ====== BOTÓN ====== */
+.form-actions {
+    text-align: right;
+    margin-top: 15px;
+}
+.btn-submit {
+    background: #111;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+.btn-submit:hover {
+    background: #000;
+}
+</style>
