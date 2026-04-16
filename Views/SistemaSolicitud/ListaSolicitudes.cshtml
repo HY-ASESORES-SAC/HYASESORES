@@ -47,7 +47,7 @@
                                         <th>Archivos</th>
                                         <th>Fecha Registro</th>
                                         <th>Estado</th>
-                                    <!--  <th>ESSALUD</th> -->
+                                      <!--  <th>ESSALUD</th> -->
                                     </tr>
                                 </thead>
                                 <tbody id="tabla-body">
@@ -55,7 +55,7 @@
                                     {
                                             foreach (var item in Model)
                                             {
-                                                    <tr data-id="@item.IdDescanso" data-estado="@item.Estado">
+                                                    <tr data-id="@item.IdDescanso">
                                                         <td style="width:48px">
                                                             <input type="checkbox" class="row-select" data-id="@item.IdDescanso" />
                                                         </td>
@@ -67,22 +67,9 @@
                                                         <td class="text-center"><i class="bi bi-file-earmark-text"></i> 0</td>
                                                         <td>@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
                                                         
-                                                        <td class="estado-cell">
-                                                        @if (item.Estado == "Válido")
-                                                            {
-                                                                <span class="badge bg-success">Válido</span>
-                                                            }
-                                                            else if (item.Estado == "No válido")
-                                                            {
-                                                                <span class="badge bg-danger">No válido</span>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span class="badge bg-light text-dark">En Proceso</span>
-                                                            }
-                                                        </td>
-                                                        <td class="essalud-cell"><span class="pill-essalud">En Proceso</span></td>
-                                                    </tr>                                                    
+                                                          <td class="estado-cell"><span class="badge bg-light text-dark">En Proceso</span></td>
+                                                          <td class="essalud-cell"><span class="pill-essalud">En Proceso</span></td>
+                                                    </tr>
                                             }
                                     }
                                     else
@@ -183,7 +170,7 @@
                         });
 
                         // confirm processing
-                            document.getElementById('confirm-process-btn')?.addEventListener('click', function(){
+                          document.getElementById('confirm-process-btn')?.addEventListener('click', function(){
                             const confirmModalEl = document.getElementById('confirmProcessModal');
                             const inst = bootstrap.Modal.getInstance(confirmModalEl);
                             if(inst) inst.hide();
@@ -191,79 +178,30 @@
                             const selected = rows().filter(r=>r.checked && !r.disabled);
                             const hu07Body = document.getElementById('hu07-summary-body'); hu07Body.innerHTML = '';
 
-                            // simulate processing each selected
-                                const updates = [];
-
-                                selected.forEach(cb => {
+                              selected.forEach(cb=>{
                                 const id = cb.dataset.id;
                                 const tr = document.querySelector(`tr[data-id="${id}"]`);
-                                if (!tr) return;
+                                if(!tr) return;
                                 const valido = Math.random() < 0.7;
-                                const estadoTexto = valido ? "Válido" : "No válido";
                                 const ess = valido ? '<span class="badge bg-success">Válido</span>' : '<span class="badge bg-danger">No válido</span>';
-
-                                const estadoCell = tr.querySelector('.estado-cell');
-                                if (estadoCell) estadoCell.innerHTML = ess;
+                                // update estado & essalud pill
+                              const estadoCell = tr.querySelector('.estado-cell'); if(estadoCell) estadoCell.innerHTML = ess;
+                              const essCell = tr.querySelector('.essalud-cell'); if(essCell) essCell.innerHTML = ess;
+                                // disable checkbox
                                 cb.checked = false; cb.disabled = true;
-                                updates.push({ idDescanso: parseInt(id), estado: estadoTexto });
-
+                                // add to hu07
                                 const empleado = tr.children[1]?.innerText?.trim() || '';
                                 const row = document.createElement('tr');
-                                row.innerHTML = `<td>${id}</td><td>${empleado}</td><td>${estadoTexto}</td><td>${estadoTexto === "Válido" ? "Solicitud validada" : "Solicitud no válida"}</td>`;
-                                document.getElementById('hu07-summary-body').appendChild(row);
+                                row.innerHTML = `<td>${id}</td><td>${empleado}</td><td>${valido? 'Válido':'No válido'}</td><td>${valido? 'Solicitud validada':'Solicitud no válida'}</td>`;
+                                hu07Body.appendChild(row);
                             });
-                            // 🔥 Guardar cambios en BD
-                            fetch('/SistemaSolicitud/ActualizarEstadosESSALUD', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(updates)
-                            })
-                            .then(res => res.ok ? res.json() : Promise.reject("Error al guardar estados"))
-                            .then(resp => console.log("Estados guardados:", resp))
-                            .catch(err => console.error(err));
-
 
                             // reset
                             selectAllTop.checked = false; updateUI();
 
                             // show HU-07 modal
-                            @* const hm = new bootstrap.Modal(document.getElementById('hu07Modal'));
-                            hm.show(); *@
                             const hm = new bootstrap.Modal(document.getElementById('hu07Modal'));
                             hm.show();
-
-                            // luego de 1 segundo, mostrar el modal real que carga la vista Lista/Index.cshtml
-                            setTimeout(() => {
-                                hm.hide();
-
-                                // Cargar la vista Index de ListaController dentro del nuevo modal
-                                const modalBody = document.getElementById("modalListaBody");
-                                modalBody.innerHTML = `
-                                    <div class="text-center text-muted py-5">
-                                        <div class="spinner-border text-primary" role="status"></div>
-                                        <p class="mt-2">Cargando interfaz de revisión...</p>
-                                    </div>
-                                `;
-
-                                // Llamar al controlador ListaController.Index
-                                fetch("/Lista/Index")
-                                    .then(res => {
-                                        if (!res.ok) throw new Error("Error al cargar la vista Lista/Index");
-                                        return res.text();
-                                    })
-                                    .then(html => {
-                                        modalBody.innerHTML = html;
-                                    })
-                                    .catch(err => {
-                                        modalBody.innerHTML = `
-                                            <div class="alert alert-danger text-center">⚠️ No se pudo cargar la vista de revisión.<br>${err.message}</div>
-                                        `;
-                                    });
-
-                                const modalLista = new bootstrap.Modal(document.getElementById('modalLista'));
-                                modalLista.show();
-                            }, 1000);
-
                         });
 
                         // inicializar contador

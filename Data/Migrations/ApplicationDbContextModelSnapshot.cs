@@ -274,11 +274,6 @@ namespace proyectoIngSoft.Data.Migrations
                     b.Property<int?>("EnfermedadId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("EstadoESSALUD")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.Property<int?>("FallecimientoId")
                         .HasColumnType("integer");
 
