@@ -1,0 +1,125 @@
+@model proyectoIngSoft.Models.Descanso
+
+<div class="modal-body d-flex justify-content-center">
+    <div class="card-custom">
+
+        <!-- Nombre y DNI -->
+        <div class="info-box row">
+            <div class="col">
+                <p class="label-title">Nombre Completo</p>
+                <p>@Model.User.Username @Model.User.Apellidos</p>
+            </div>
+            <div class="col">
+                <p class="label-title">DNI</p>
+                <p>@Model.User.Dni</p>
+            </div>
+        </div>
+
+        <!-- Tipo de Licencia -->
+        <div >
+            <p class="label-title">Tipo de Licencia</p>
+            <p class="status-blue">@Model.TipoDescanso.Nombre</p>
+
+            <div class="row mt-2">
+                <div class="col">
+                    <p class="label-title">Fecha de Registro</p>
+                    <p>@Model.FechaSolicitud.ToString("dd/MM/yyyy")</p>
+                </div>
+                <div class="col">
+                    <p class="label-title">Estado Actual</p>
+                    <p class="status-blue">En Proceso</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div>
+            <p class="label-title">Información Adicional</p>
+            <p class="info-box text-muted">
+                @if (Model.Accidente != null)
+                {
+                    @Model.Accidente.Observaciones
+                }
+                else if (Model.Maternidad != null)
+                {
+                    @Model.Maternidad.Descripcion
+                }
+                else if (Model.Enfermedad != null)
+                {
+                    @Model.Enfermedad.DescEnfe
+                }
+                else
+                {
+                    @("N/A")
+                }
+            </p>
+        </div>
+
+        <!-- Documentos -->
+        <div>
+            <p class="label-title">Documentos Presentados</p>
+            @if (Model.DocumentosMedicos != null && Model.DocumentosMedicos.Any())
+            {
+                @foreach (var doc in Model.DocumentosMedicos)
+                {
+                    <div class="document-item">
+                        <div class="doc-info">
+                            <i class="bi bi-file-earmark-pdf text-danger me-2 fs-5"></i>
+                            <span>@doc.Nombre</span>
+                        </div>
+                        <a class="btn-link-pdf"
+                           href="@Url.Action("VerDocumento", "Lista", new { id = doc.IdDocumento })"
+                           target="_blank">Ver PDF</a>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted">No hay documentos médicos asociados.</p>
+            }
+        </div>
+
+        <!-- Mensaje para trabajador -->
+        <div>
+            <p class="label-title">Cambiar Estado de la Solicitud</p>
+            <label class="form-label">Mensaje para el trabajador</label>
+            <textarea class="form-control custom-textarea" rows="3"
+                      placeholder="Escriba el mensaje que se enviará al trabajador explicando la observación..."></textarea>
+        </div>
+
+        <!-- Botón -->
+        <form asp-action="EnviarObservacion" asp-controller="Lista" method="post">
+        <input type="hidden" name="descansoId" value="@Model.IdDescanso" />
+         <label class="form-label">Mensaje para el trabajador</label>
+         <textarea name="mensaje" class="form-control custom-textarea" rows="3"
+              placeholder="Escriba el mensaje que se enviará al trabajador explicando la observación..."></textarea>
+
+        <br />
+         <button type="submit" class="btn btn-warning mt-2">Observación</button>
+        </form>
+        
+    </div>
+</div>
+
+
+@section Scripts {
+<script>
+    function verPdfData(el) {
+        const id = el.getAttribute('data-id');
+        const name = el.getAttribute('data-name');
+        verPdf(id, name);
+    }
+
+    function verPdf(id, name) {
+        const url = '/Lista/VerDocumento?id=' + encodeURIComponent(id);
+        document.getElementById('pdfViewer').src = url;
+        document.getElementById('pdfModalLabel').innerText = name;
+        const modal = new bootstrap.Modal(document.getElementById('pdfModal'));
+        modal.show();
+    }
+</script>
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+
+<link rel="stylesheet" href="~/css/Modal.css" asp-append-version="true">

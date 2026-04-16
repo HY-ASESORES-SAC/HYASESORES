@@ -1,0 +1,425 @@
+@model List<proyectoIngSoft.Models.Lista>
+<div class="header">
+        <h2>Control de solicitudes</h2>
+        <button class="btn-consulta">Consulta con ESSALUD</button>
+    </div>
+
+<div class="solicitudes-container">
+    
+
+    <div class="tabs">
+        <span class="tab active">Solicitudes en Proceso <span class="badge">@Model.Count solicitudes</span></span>
+    </div>
+    <p>Filtros para Solicitudes en Proceso </p>
+    <div class="filters">
+        <div class="filter-item">
+            <label>Buscar Empleado</label>
+            <input type="text" id="filtroEmpleado" placeholder="Nombre o DNI..." onkeyup="filtrarTabla()" />
+        </div>
+        <div class="filter-item">
+            <label>Filtro de Fecha</label>
+            <select id="filtroFecha" onchange="filtrarTabla()">
+                <option value="">Todas las fechas</option>
+                <option value="hoy">Hoy</option>
+                <option value="semana">Esta semana</option>
+                <option value="mes">Este mes</option>
+            </select>
+        </div>
+        <div class="filter-item">
+            <label>Fecha Específica</label>
+            <input type="date" id="fechaEspecifica" onchange="filtrarTabla()" />
+        </div>
+        <div class="filter-item">
+            <label>Tipo de Licencia</label>
+            <select id="filtroLicencia" onchange="filtrarTabla()">
+                <option value="">Todas las razones</option>
+                <option value="Accidente">Accidente</option>
+                <option value="Maternidad">Maternidad</option>
+                <option value="Enfermedad Familiar">Enfermedad Familiar</option>
+                <option value="Paternidad">Paternidad</option>
+                <option value="Fallecimiento Familiar">Fallecimiento Familiar</option>
+                <option value="Enfermedad">Enfermedad</option>
+                <!-- Puedes agregar más -->
+            </select>
+        </div>
+    </div>
+
+    <div class="table-container">
+    <!-- Cabecera fija -->
+    <table class="solicitudes-table">
+        <thead>
+            <tr>
+                <th>Empleado</th>
+                <th>Razón del Descanso</th>
+                <th>Fecha de Registro</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+    </table>
+
+    <!-- Solo el body con scroll -->
+    <div class="table-body-scroll">
+        <table class="solicitudes-table">
+            <tbody id="tablaSolicitudes">
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            <strong>@item.Username @item.Apellidos</strong><br />
+                            <span class="dni">DNI: @item.Dni</span>
+                        </td>
+                        <td>@item.Observaciones</td>
+                        <td>@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            @if (item.Estado == "En Proceso")
+                            {
+                                <span class="estado estado-proceso">En Proceso</span>
+                            }
+                            else if (item.Estado == "En Observación")
+                            {
+                                <span class="estado estado-observacion">En Observación</span>
+                            }
+                            else
+                            {
+                                <span class="estado">@item.Estado</span>
+                            }
+                        </td>
+                        <td>
+                            <a href="javascript:void(0)"
+                               class="btn-detalles"
+                               data-descanso-id="@item.IdDescanso"
+                               onclick="abrirModal(@item.IdDescanso)">
+                                Ver Detalles
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+</div>
+<div class="solicitudes-container">
+
+    <div class="tabs">
+        <span class="tab active">Solicitudes Procesadas <span class="badge">@Model.Count solicitudes</span></span>
+    </div>
+
+    <p>Filtros para Solicitudes Procesadas </p>
+
+    <div class="filters">
+        <div class="filter-item">
+            <label>Buscar Empleado</label>
+            <input type="text" id="filtroEmpleado" placeholder="Nombre o DNI..." onkeyup="filtrarTabla()" />
+        </div>
+        <div class="filter-item">
+            <label>Filtro de Fecha</label>
+            <select id="filtroFecha" onchange="filtrarTabla()">
+                <option value="">Todas las fechas</option>
+                <option value="hoy">Hoy</option>
+                <option value="semana">Esta semana</option>
+                <option value="mes">Este mes</option>
+            </select>
+        </div>
+        <div class="filter-item">
+            <label>Fecha Específica</label>
+            <input type="date" id="fechaEspecifica" onchange="filtrarTabla()" />
+        </div>
+        <div class="filter-item">
+            <label>Tipo de Licencia</label>
+            <select id="filtroLicencia" onchange="filtrarTabla()">
+                <option value="">Todas las razones</option>
+                <option value="Accidente">Accidente</option>
+                <option value="Maternidad">Maternidad</option>
+                <option value="Enfermedad Familiar">Enfermedad Familiar</option>
+                <option value="Paternidad">Paternidad</option>
+                <option value="Fallecimiento Familiar">Fallecimiento Familiar</option>
+                <option value="Enfermedad">Enfermedad</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <!-- Cabecera fija -->
+        <table class="solicitudes-table">
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Razón del Descanso</th>
+                    <th>Fecha de Registro</th>
+                    <th>Edsalus</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+        </table>
+
+        <!-- Solo el body con scroll -->
+        <div class="table-body-scroll">
+            <table class="solicitudes-table">
+                <tbody id="tablaSolicitudes">
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@item.Username @item.Apellidos</strong><br />
+                                <span class="dni">DNI: @item.Dni</span>
+                            </td>
+                            <td>@item.Observaciones</td>
+                            <td>@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
+                            <!-- Columna Edsalus con divs de color -->
+                            <td>
+                                <div class="badge-color verde">Valido</div>
+                            </td>
+                            <!-- Columna Estado con divs de color -->
+                            <td>
+                                <div class="badge-color morado">Procesado</div>
+                            </td>
+                            <td>
+                                <a href="javascript:void(0)"
+                                   class="btn-detalles"
+                                   data-descanso-id="@item.IdDescanso"
+                                   onclick="abrirModal(@item.IdDescanso)">
+                                    Ver Detalles
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal fade" id="detalleModal" tabindex="-1" aria-labelledby="detalleModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-custom">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5>Ver Detalles</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div id="detalleContenido">
+            <!-- Aquí se cargan los datos con AJAX -->
+        </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<script>
+function abrirModal(descansoId) {
+    $.get("/Lista/DetalleDescanso", { descansoId: descansoId }, function (data) {
+        $("#detalleContenido").html(data);
+        $("#detalleModal").modal("show");
+    }).fail(function () {
+        alert("No se pudo cargar el detalle del descanso.");
+    });
+}
+
+function filtrarTabla() {
+    const filtroEmpleado = document.getElementById("filtroEmpleado").value.toLowerCase();
+    const filtroLicencia = document.getElementById("filtroLicencia").value.toLowerCase();
+    const fechaEspecifica = document.getElementById("fechaEspecifica").value;
+
+    const filas = document.querySelectorAll("#tablaSolicitudes tr");
+
+    filas.forEach(fila => {
+        const empleado = fila.cells[0].innerText.toLowerCase();
+        const licencia = fila.cells[1].innerText.toLowerCase();
+        const fecha = fila.cells[2].innerText.split("/").reverse().join("-"); // formato yyyy-MM-dd
+
+        let mostrar = true;
+
+        if (filtroEmpleado && !empleado.includes(filtroEmpleado)) mostrar = false;
+        if (filtroLicencia && !licencia.includes(filtroLicencia)) mostrar = false;
+        if (fechaEspecifica && fecha !== fechaEspecifica) mostrar = false;
+
+        fila.style.display = mostrar ? "" : "none";
+    });
+}
+</script>
+
+<style>
+ .solicitudes-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* Encabezado */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+.btn-consulta {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.btn-consulta:hover {
+    background: #0056b3;
+}
+
+/* Tabs */
+.tabs {
+    margin-bottom: 15px;
+}
+.tab {
+    font-size: 15px;
+    font-weight: 500;
+}
+.tab.active {
+    color: #333;
+}
+.badge {
+    background: #eaf2ff;
+    color: #007bff;
+    font-size: 13px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 5px;
+}
+
+/* Filtros */
+.filters {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.filter-item label {
+    font-size: 13px;
+    color: #666;
+    display: block;
+    margin-bottom: 5px;
+}
+.filter-item input,
+.filter-item select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+/* Tabla */
+.table-container {
+    overflow-x: auto;
+}
+.solicitudes-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    table-layout: fixed;
+}
+.solicitudes-table th {
+    text-align: left;
+    padding: 12px;
+    color: #555;
+    font-weight: 600;
+    background: #f9f9f9;
+}
+.solicitudes-table td {
+    padding: 12px;
+    border-top: 1px solid #eee;
+    vertical-align: middle;
+}
+.solicitudes-table td strong {
+    color: #333;
+}
+.solicitudes-table .dni {
+    font-size: 13px;
+    color: #666;
+}
+
+/* Estados */
+.estado {
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+}
+.estado-proceso {
+    background: #e8f1ff;
+    color: #007bff;
+}
+.estado-observacion {
+    background: #fff7e6;
+    color: #b58900;
+}
+
+/* Botón detalles */
+.btn-detalles {
+    background: #f5f9ff;
+    color: #007bff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    border: 1px solid #cce0ff;
+}
+.btn-detalles:hover {
+    background: #e6f0ff;
+}
+
+.table-body-scroll {
+    max-height: 330px; /* Ajusta la altura según el alto de 5 filas */
+    overflow-y: auto;
+}
+
+/* Opcional: scrollbar más bonito */
+.table-body-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+.table-body-scroll::-webkit-scrollbar-thumb {
+    background-color: #c1c1c1;
+    border-radius: 4px;
+}
+
+.badge-color {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    min-width: 90px;
+}
+
+.badge-color.verde {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.badge-color.morado {
+    background-color: #e0d4f7;
+    color: #5b2fa0;
+}
+
+.badge-color.rojo {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+
+</style>
