@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using HYASESORES.Models;
+using proyectoIngSoft.Models;
 
-namespace HYASESORES.Controllers;
+namespace proyectoIngSoft.Controllers;
 
 public class HomeController : Controller
 {

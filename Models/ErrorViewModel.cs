@@ -1,4 +1,4 @@
-namespace HYASESORES.Models;
+namespace proyectoIngSoft.Models;
 
 public class ErrorViewModel
 {
