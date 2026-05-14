@@ -73,20 +73,22 @@ namespace proyectoIngSoft.Controllers
         public IActionResult Login() => View();
 
         [HttpPost]
-        public IActionResult Login(string email, string password)
-        {
-            var user = _context.DbSetUser.FirstOrDefault(u => u.Email == email && u.Password == password);
-            if (user != null)
-            {
-                // Guardar sesión básica
-                HttpContext.Session.SetString("User", user.Username);
-                HttpContext.Session.SetString("Rol", user.Rol);
-                return RedirectToAction("Index", "Home");
-            }
+     [HttpPost]
+public IActionResult Login(string email, string password)
+{
+    var user = _context.DbSetUser.FirstOrDefault(u => u.Email == email && u.Password == password);
+    if (user != null)
+    {
+        // Guardar sesión usando Email
+        HttpContext.Session.SetString("User", user.Email);
+        HttpContext.Session.SetString("Rol", user.Rol);
+        return RedirectToAction("Index", "Home");
+    }
 
-            ViewBag.Error = "Correo o contraseña incorrectos";
-            return View();
-        }
+    ViewBag.Error = "Correo o contraseña incorrectos";
+    return View();
+}
+
 
         public IActionResult Logout()
         {

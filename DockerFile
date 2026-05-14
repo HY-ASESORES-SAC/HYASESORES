@@ -1,18 +1,23 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+# Etapa de compilación
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-env
 WORKDIR /app
 
+# Copiar el archivo del proyecto y restaurar dependencias
 COPY *.csproj ./
 RUN dotnet restore
 
+# Copiar todo el contenido y publicar la aplicación
 COPY . ./
 RUN dotnet publish -c Release -o out
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# Etapa de ejecución
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build-env /app/out .
 
-#CAMBIAR AQUI EL NOMBRE DEL APLICATIVO
-#nombre de tu app busca en bin\Release**\netcore5.0\plantitas.exe
-ENV APP_NET_CORE proyectoIngSoft.dll 
+# Nombre del archivo principal a ejecutar
+# Asegúrate de que coincida con el nombre del .dll generado en la publicación
+ENV APP_NET_CORE proyectoIngSoft.dll
 
+# Ejecutar la aplicación
 CMD ASPNETCORE_URLS=http://*:$PORT dotnet $APP_NET_CORE

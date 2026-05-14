@@ -22,5 +22,20 @@ namespace proyectoIngSoft.Models
 
         [Display(Name = "Mensaje de notificación")]
         public string Mensaje { get; set; }
+
+
+        // 🔥 Nueva propiedad: lista completa de empleados
+        public List<EmpleadoViewModel> Empleados { get; set; } = new List<EmpleadoViewModel>();
+    }
+
+    // 🔹 Clase para los datos del empleado
+    public class EmpleadoViewModel
+    {
+        public string Nombre { get; set; }
+        public string Cargo { get; set; }
+        public string Dni { get; set; }
+        public string Email { get; set; }
+
+
     }
 }
