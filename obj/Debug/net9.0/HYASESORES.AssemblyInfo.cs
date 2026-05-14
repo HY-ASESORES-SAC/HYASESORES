@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HYASESORES")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+742fd5e0909e5dc19c81bf4cd3d6363355e2c858")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7f87fceb95b3c1a06927c4d14952afb0eee9de7c")]
 [assembly: System.Reflection.AssemblyProductAttribute("HYASESORES")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HYASESORES")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
