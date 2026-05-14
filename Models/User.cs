@@ -66,5 +66,9 @@ namespace proyectoIngSoft.Models
         public string ConfirmarPassword { get; set; }
 
         public string Rol { get; set; } = "Trabajador";
+
+        // 🔹 Propiedad calculada para mostrar el nombre completo
+        [NotMapped]
+        public string NombreCompleto => $"{Username} {Apellidos}";
     }
 }

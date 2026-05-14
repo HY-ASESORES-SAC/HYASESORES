@@ -1,0 +1,37 @@
+@model IEnumerable<proyectoIngSoft.Models.Descanso>
+
+@{
+    ViewData["Title"] = "Monitoreo de Subsidios";
+}
+
+<h2>Monitoreo de Subsidios</h2>
+
+<form method="get" action="/Monitoreo">
+    <input type="hidden" name="tipo" value="@ViewBag.Tipo" />
+    <input type="text" name="busqueda" value="@ViewBag.Busqueda" placeholder="Buscar trabajador..." />
+    <button type="submit" class="btn btn-primary">Buscar</button>
+</form>
+
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>DNI</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var t in Model)
+        {
+            <tr>
+                <td>@t.User.NombreCompleto</td>
+                <td>@t.User.Dni</td>
+                <td>@t.EstadoSubsidioA</td>
+                <td>
+                    <a class="btn btn-sm btn-info" href="/Monitoreo/Detalles/@t.IdDescanso">Ver Detalles</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

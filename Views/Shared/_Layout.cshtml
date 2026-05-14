@@ -2,10 +2,10 @@
 @inject IHttpContextAccessor HttpContextAccessor
 
 @{
-    var user = HttpContextAccessor.HttpContext?.Session.GetString("User");
+    // Obtener datos de la sesión
+    var userEmail = HttpContextAccessor.HttpContext?.Session.GetString("User");
     var rol = HttpContextAccessor.HttpContext?.Session.GetString("Rol");
 }
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -13,7 +13,6 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - proyectoIngSoft</title>
-    <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/proyectoIngSoft.styles.css" asp-append-version="true" />
@@ -28,36 +27,70 @@
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                                        <ul class="navbar-nav flex-grow-1">
-                        @if (!string.IsNullOrEmpty(user))
+                    <ul class="navbar-nav flex-grow-1">
+                        @if (!string.IsNullOrEmpty(userEmail))
                         {
-                            if (rol == "Jefe")
+                            @* ----- Para Jefes ----- *@
+                            @if (rol == "Jefe")
                             {
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="Index">Lista</a>
-                                </li>          
+                                </li>
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="DescansosProlongados">Subsidios</a>
-                                </li>     
+                                </li>
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="SubsidiosJefe">SubsidiosJefe</a>
-                                </li>             
+                                </li>
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="SupervisionSubsidios">SupervisionSubsidios</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Monitoreo" asp-action="Index">Monitoreo</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" href="/Simulaciones/CrearNotificacion">Notificaciones Simuladas</a>
+                                </li>
                             }
-                            if (rol == "Bienestar")
+                            @* ----- Para María ----- *@
+                            else if (userEmail == "maria@maria.com")
                             {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-controller="Simulaciones" asp-action="MisNotificaciones">Mis Notificaciones</a>
+                                </li>
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="SistemaSolicitud" asp-action="Index">Solicitudes</a>
                                 </li>
                             }
-                            else
+                            @* ----- Para otros Empleados/Trabajadores ----- *@
+                            else if (rol == "Empleado" || rol == "Trabajador")
                             {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="Index">Lista</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="DescansosProlongados">Subsidios</a>
+                                </li>
+                                @if (rol == "Trabajador")
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-controller="Simulaciones" asp-action="MisNotificaciones">Mis Notificaciones</a>
+                                    </li>
+                                }
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="SistemaSolicitud" asp-action="Index">Solicitudes</a>
                                 </li>
-                                
+                            }
+
+                            @* ----- Monitoreo y Notificaciones solo para oskar@oskar ----- *@
+                            @if (userEmail == "oskar@oskar")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Monitoreo" asp-action="Index">Monitoreo</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Notificaciones Generales" asp-action="Crear">Notificaciones</a>
+                                </li>
                             }
                         }
                     </ul>
@@ -67,6 +100,7 @@
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -78,6 +112,7 @@
             &copy; 2025 - proyectoIngSoft - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
