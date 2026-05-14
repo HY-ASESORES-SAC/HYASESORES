@@ -66,7 +66,10 @@
         </div>
         <div class="col">
             <label>Razón Social</label>
-            <input asp-for="RazonSocial" class="form-control" />
+            <input asp-for="RazonSocial"
+                class="form-control @(ViewData.ModelState["RazonSocial"]?.Errors.Count > 0 ? "is-invalid" : "")"
+                id="razonSocialInput" />
+            <span asp-validation-for="RazonSocial" class="text-danger" id="razonError"></span>
         </div>
     </div>
 
@@ -82,6 +85,61 @@
     </div>
 </form>
 
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const input = document.getElementById("razonSocialInput");
+            const errorSpan = document.getElementById("razonError");
+
+            // Validación visual en tiempo real (cliente)
+            input.addEventListener("input", () => {
+                const v = input.value.trim().toUpperCase();
+                if (v.length === 0) {
+                    input.classList.remove("is-invalid");
+                    errorSpan.textContent = "";
+                    return;
+                }
+                if (v.length !== 6) {
+                    input.classList.add("is-invalid");
+                    errorSpan.textContent = "El código debe tener exactamente 6 caracteres.";
+                } else {
+                    // limpia la apariencia; la validación final la hace el servidor
+                    input.classList.remove("is-invalid");
+                    errorSpan.textContent = "";
+                }
+            });
+        });
+    </script>
+}
+
+
+@if (TempData["RegistroExitoso"] != null)
+{
+    <div id="modalRegistro" class="modal fadeIn">
+        <div class="modal-box">
+            <div class="checkmark">
+                <div class="checkmark__circle"></div>
+                <div class="checkmark__stem"></div>
+                <div class="checkmark__kick"></div>
+            </div>
+            <h3>¡Registro exitoso!</h3>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const modal = document.getElementById("modalRegistro");
+            modal.style.display = "flex";
+
+            // Redirección automática sin aviso
+            setTimeout(() => {
+                window.location.href = '@Url.Action("Index", "Home")';
+            }, 2000);
+        });
+    </script>
+}
 <style>
 h2{ margin:0; font-size:28px; font-weight:700; color:#0f1724; }
 .subtitle{ margin-top:8px; color:#6b7280; font-size:14px; }
@@ -196,5 +254,113 @@ form .form-control::placeholder {
 @@media (max-width: 640px) {
   .row { flex-direction: column; }
 }
+
+
+/* Fondo semitransparente del modal */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    /* Cuadro del modal */
+    .modal-box {
+        background: #fff;
+        padding: 40px 60px;
+        border-radius: 16px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        animation: fadeInUp 0.4s ease-out;
+    }
+
+    .modal-box h3 {
+        margin-top: 20px;
+        font-size: 20px;
+        color: #111827;
+        font-weight: 700;
+    }
+
+    /* ✅ Animación de check */
+    .checkmark {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: inline-block;
+        position: relative;
+        box-sizing: content-box;
+        border: 4px solid #4CAF50;
+        animation: scaleIn 0.3s ease-in-out;
+    }
+
+    .checkmark__circle {
+        stroke-dasharray: 166;
+        stroke-dashoffset: 166;
+        stroke-width: 2;
+        stroke-miterlimit: 10;
+        stroke: #4CAF50;
+        fill: none;
+        animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+
+    .checkmark__stem {
+        position: absolute;
+        width: 3px;
+        height: 25px;
+        background-color: #4CAF50;
+        left: 26px;
+        top: 38px;
+        transform: rotate(45deg);
+        border-radius: 2px;
+        animation: drawStem 0.3s ease-out forwards;
+        transform-origin: left top;
+        opacity: 0;
+    }
+
+    .checkmark__kick {
+        position: absolute;
+        width: 3px;
+        height: 10px;
+        background-color: #4CAF50;
+        left: 40px;
+        top: 52px;
+        transform: rotate(-45deg);
+        border-radius: 2px;
+        animation: drawKick 0.3s ease-out 0.2s forwards;
+        transform-origin: left top;
+        opacity: 0;
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes drawStem {
+        from { height: 0; opacity: 1; }
+        to { height: 25px; opacity: 1; }
+    }
+
+    @@keyframes drawKick {
+        from { height: 0; opacity: 1; }
+        to { height: 10px; opacity: 1; }
+    }
+
+    @@keyframes scaleIn {
+        from { transform: scale(0); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
 </style>
 
