@@ -14,6 +14,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+    .AddRoles<IdentityRole>() // ✅ Habilitar roles
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.AddControllersWithViews();
@@ -50,6 +51,26 @@ app.UseAuthorization();
 
 // 👇 Habilitar sesión
 app.UseSession();
+
+// ✅ Asignar el rol "Jefe" al usuario oskar@oskar
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
+
+    // Crear el rol "Jefe" si no existe
+    if (!await roleManager.RoleExistsAsync("Jefe"))
+    {
+        await roleManager.CreateAsync(new IdentityRole("Jefe"));
+    }
+
+    // Asignar el rol "Jefe" al usuario oskar@oskar
+    var jefe = await userManager.FindByEmailAsync("oskar@oskar");
+    if (jefe != null && !await userManager.IsInRoleAsync(jefe, "Jefe"))
+    {
+        await userManager.AddToRoleAsync(jefe, "Jefe");
+    }
+}
 
 app.MapControllerRoute(
     name: "default",

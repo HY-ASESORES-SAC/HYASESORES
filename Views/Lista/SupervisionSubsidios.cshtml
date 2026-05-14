@@ -181,6 +181,7 @@
             color:#555;
             font-weight:600;
             font-size:0.9rem;
+            text-transform: uppercase;
         }
     </style>
 
@@ -204,16 +205,30 @@ document.addEventListener("DOMContentLoaded", function () {
         const visibleCount = visibleRows().length;
         txtSeleccionados.textContent = `${selectedCount} seleccionado(s) • ${visibleCount} de ${allRows().length} registros`;
         btnReporte.innerHTML = `<i class="bi bi-send"></i> Enviar Reporte (${selectedCount})`;
-        chkSelectAll.checked = visibleCheckboxes().every(chk => chk.checked);
+        const visibles = visibleCheckboxes();
+        chkSelectAll.checked = visibles.length > 0 && visibles.every(chk => chk.checked);
     }
 
     function filtrar() {
         const q = searchInput.value.trim().toLowerCase();
+        let coincidencias = 0;
+
         allRows().forEach(row => {
             const text = row.innerText.toLowerCase();
-            row.style.display = text.includes(q) ? '' : 'none';
+            const visible = text.includes(q);
+            row.style.display = visible ? '' : 'none';
+            if (visible) coincidencias++;
         });
+
         actualizarSeleccion();
+
+        // Mostrar mensaje si no hay resultados visibles
+        if (q.length > 0 && coincidencias === 0) {
+            showMessage('No se encontró trabajador con ese DNI o nombre', '#c21212');
+        } else {
+            // Ocultar mensaje si vuelve a haber resultados
+            mensaje.style.display = 'none';
+        }
     }
 
     chkSelectAll.addEventListener('change', () => {
@@ -245,7 +260,7 @@ document.addEventListener("DOMContentLoaded", function () {
             showMessage('Debe seleccionar al menos un subsidio', '#c21212');
             return;
         }
-        showMessage('Reporte enviado exitosamente', '#21944d');
+        showMessage('Enviado exitosamente', '#21944d');
 
         await fetch('/Lista/EnviarSeleccionados', {
             method: 'POST',

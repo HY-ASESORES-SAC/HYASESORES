@@ -22,77 +22,78 @@
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">proyectoIngSoft</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" 
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
+
                         @if (!string.IsNullOrEmpty(userEmail))
                         {
-                            @* ----- Para Jefes ----- *@
+
                             @if (rol == "Jefe")
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="Index">Lista</a>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" id="gestionDropdown" role="button" data-bs-toggle="dropdown">
+                                        Gestión
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Lista" asp-action="Index">Lista</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Lista" asp-action="DescansosProlongados">Subsidios</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Lista" asp-action="SubsidiosJefe">Subsidios Jefe</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Lista" asp-action="SupervisionSubsidios">Supervisión</a></li>
+                                        <li><a class="dropdown-item" asp-controller="SistemaSolicitud" asp-action="ListaSolicitudes">Ver Lista de Solicitudes</a></li>
+                                    </ul>
                                 </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="DescansosProlongados">Subsidios</a>
+
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" id="monitoreoDropdown" role="button" data-bs-toggle="dropdown">
+                                        Monitoreo
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Monitoreo" asp-action="Index">Panel de Monitoreo</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Trabajadores" asp-action="Index">Trabajadores</a></li>
+                                    </ul>
                                 </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="SubsidiosJefe">SubsidiosJefe</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="SupervisionSubsidios">SupervisionSubsidios</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Monitoreo" asp-action="Index">Monitoreo</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" href="/Simulaciones/CrearNotificacion">Notificaciones Simuladas</a>
+
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown">
+                                        Notificaciones
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="/Simulaciones/CrearNotificacion">Simuladas</a></li>
+                                        <li><a class="dropdown-item" asp-controller="NotificacionesGenerales" asp-action="Crear">Generales</a></li>
+                                    </ul>
                                 </li>
                             }
-                            @* ----- Para María ----- *@
-                            else if (userEmail == "maria@maria.com")
+                            else if (rol == "Bienestar")
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-controller="Simulaciones" asp-action="MisNotificaciones">Mis Notificaciones</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="SistemaSolicitud" asp-action="Index">Solicitudes</a>
+                                    <a class="nav-link text-dark" asp-controller="SistemaSolicitud" asp-action="ListaSolicitudes">
+                                        Ver Lista de Solicitudes
+                                    </a>
                                 </li>
                             }
-                            @* ----- Para otros Empleados/Trabajadores ----- *@
                             else if (rol == "Empleado" || rol == "Trabajador")
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="Index">Lista</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="DescansosProlongados">Subsidios</a>
-                                </li>
-                                @if (rol == "Trabajador")
-                                {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-controller="Simulaciones" asp-action="MisNotificaciones">Mis Notificaciones</a>
-                                    </li>
-                                }
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="SistemaSolicitud" asp-action="Index">Solicitudes</a>
-                                </li>
-                            }
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" id="empleadoDropdown" role="button" data-bs-toggle="dropdown">
+                                        Opciones
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="SistemaSolicitud" asp-action="Index">Solicitudes</a></li>
 
-                            @* ----- Monitoreo y Notificaciones solo para oskar@oskar ----- *@
-                            @if (userEmail == "oskar@oskar")
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Monitoreo" asp-action="Index">Monitoreo</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Notificaciones Generales" asp-action="Crear">Notificaciones</a>
+                                        @if (rol == "Trabajador")
+                                        {
+                                            <li><a class="dropdown-item" asp-controller="Simulaciones" asp-action="MisNotificaciones">Mis Notificaciones</a></li>
+                                        }
+                                    </ul>
                                 </li>
                             }
                         }
+
                     </ul>
 
                     <partial name="_LoginPartial" />
@@ -109,7 +110,8 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - proyectoIngSoft - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - proyectoIngSoft - 
+            <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
 
@@ -119,3 +121,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

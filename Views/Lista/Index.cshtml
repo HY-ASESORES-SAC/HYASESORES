@@ -1,18 +1,19 @@
-@model List<proyectoIngSoft.Models.Lista>
+@model List<proyectoIngSoft.Models.Lista> 
+
 <div class="header">
-        <h2>Control de solicitudes</h2>
-        <a asp-controller="SistemaSolicitud" asp-action="Index" class="btn-consulta">
+    <h2>Control de solicitudes</h2>
+    <a asp-controller="SistemaSolicitud" asp-action="ListaSolicitudes" class="btn-consulta">
         Consulta con ESSALUD
-        </a>
-    </div>
+    </a>
+</div>
 
 <div class="solicitudes-container">
-    
 
     <div class="tabs">
         <span class="tab active">Solicitudes en Proceso <span class="badge">@Model.Count solicitudes</span></span>
     </div>
     <p>Filtros para Solicitudes en Proceso </p>
+
     <div class="filters">
         <div class="filter-item">
             <label>Buscar Empleado</label>
@@ -41,69 +42,68 @@
                 <option value="Paternidad">Paternidad</option>
                 <option value="Fallecimiento Familiar">Fallecimiento Familiar</option>
                 <option value="Enfermedad">Enfermedad</option>
-                <!-- Puedes agregar más -->
             </select>
         </div>
     </div>
 
     <div class="table-container">
-    <!-- Cabecera fija -->
-    <table class="solicitudes-table">
-        <thead>
-            <tr>
-                <th>Empleado</th>
-                <th>Razón del Descanso</th>
-                <th>Fecha de Registro</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-    </table>
-
-    <!-- Solo el body con scroll -->
-    <div class="table-body-scroll">
+        <!-- Cabecera fija -->
         <table class="solicitudes-table">
-            <tbody id="tablaSolicitudes">
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>
-                            <strong>@item.Username @item.Apellidos</strong><br />
-                            <span class="dni">DNI: @item.Dni</span>
-                        </td>
-                        <td>@item.Observaciones</td>
-                        <td>@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
-                        <td>
-                            @if (item.Estado == "En Proceso")
-                            {
-                                <span class="estado estado-proceso">En Proceso</span>
-                            }
-                            else if (item.Estado == "En Observación")
-                            {
-                                <span class="estado estado-observacion">En Observación</span>
-                            }
-                            else
-                            {
-                                <span class="estado">@item.Estado</span>
-                            }
-                        </td>
-                        <td>
-                            <a href="javascript:void(0)"
-                               class="btn-detalles"
-                               data-descanso-id="@item.IdDescanso"
-                               onclick="abrirModal(@item.IdDescanso)">
-                                Ver Detalles
-                            </a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>Razón del Descanso</th>
+                    <th>Fecha de Registro</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
         </table>
+
+        <!-- Solo el body con scroll -->
+        <div class="table-body-scroll">
+            <table class="solicitudes-table">
+                <tbody id="tablaSolicitudes">
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@item.Username @item.Apellidos</strong><br />
+                                <span class="dni">DNI: @item.Dni</span>
+                            </td>
+                            <td>@item.Observaciones</td>
+                            <td>@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @if (item.Estado == "En Proceso")
+                                {
+                                    <span class="estado estado-proceso">En Proceso</span>
+                                }
+                                else if (item.Estado == "En Observación")
+                                {
+                                    <span class="estado estado-observacion">En Observación</span>
+                                }
+                                else
+                                {
+                                    <span class="estado">@item.Estado</span>
+                                }
+                            </td>
+                            <td>
+                                <a href="javascript:void(0)"
+                                   class="btn-detalles"
+                                   data-descanso-id="@item.IdDescanso"
+                                   onclick="abrirModal(@item.IdDescanso)">
+                                    Ver Detalles
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
-
 
 </div>
+
 <div class="solicitudes-container">
 
     <div class="tabs">
@@ -160,35 +160,36 @@
         </table>
 
         <div class="solicitudes-container">
-    
-    <!-- Tabla reemplazada por funcionalidad del módulo ESSALUD -->
-    <div class="table-container">
-        <table class="solicitudes-table">
-            <thead>
-                <tr>
-                    <th>Empleado</th>
-                    <th>DNI</th>
-                    <th>Razón del Descanso</th>
-                    <th>Fecha Registro</th>
-                    <th>Resultado ESSALUD</th>
-                </tr>
-            </thead>
-        </table>
 
-        <div class="table-body-scroll">
-            <table class="solicitudes-table">
-                <tbody id="tablaProcesadas">
-                    <tr>
-                        <td colspan="5" class="text-center text-muted py-3">
-                            Aún no hay solicitudes procesadas.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <!-- Tabla reemplazada por funcionalidad del módulo ESSALUD -->
+            <div class="table-container">
+                <table class="solicitudes-table">
+                    <thead>
+                        <tr>
+                            <th>Empleado</th>
+                            <th>DNI</th>
+                            <th>Razón del Descanso</th>
+                            <th>Fecha Registro</th>
+                            <th>Resultado ESSALUD</th>
+                        </tr>
+                    </thead>
+                </table>
+
+                <div class="table-body-scroll">
+                    <table class="solicitudes-table">
+                        <tbody id="tablaProcesadas">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-3">
+                                    Aún no hay solicitudes procesadas.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
+    </div>
 </div>
 
 <!-- MODAL -->
@@ -205,6 +206,7 @@
     </div>
   </div>
 </div>
+
 
 
 
