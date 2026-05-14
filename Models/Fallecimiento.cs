@@ -17,6 +17,10 @@ namespace proyectoIngSoft.Models
       
         [Required]
         public string NombreFallec { get; set; }
+        [Required]
+        public DateOnly FechaIni { get; set; }
+        [Required]
+        public DateOnly FechaFin { get; set; }
         [NotNull]
         [Required]
         public string Parentesco { get; set; }

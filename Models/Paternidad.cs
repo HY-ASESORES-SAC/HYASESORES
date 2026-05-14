@@ -18,6 +18,10 @@ namespace proyectoIngSoft.Models
 
         [Required]
         public DateOnly FechaParto { get; set; }
+        [Required]
+        public DateOnly FechaIni { get; set; }
+        [Required]
+        public DateOnly FechaFin { get; set; }
         [NotNull]
         [Required]
         public string NombrePareja { get; set; }

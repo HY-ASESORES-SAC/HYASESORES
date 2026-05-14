@@ -31,11 +31,41 @@ namespace proyectoIngSoft.Controllers
         {
             if (ModelState.IsValid)
             {
-                user.Rol = string.IsNullOrEmpty(user.Rol) ? null : user.Rol;
+                // 🔹 Normalizar y validar longitud del código (exactamente 6 caracteres)
+                var codigoIngresado = (user.RazonSocial ?? string.Empty).Trim().ToUpper();
+
+                if (codigoIngresado.Length != 6)
+                {
+                    ModelState.AddModelError("RazonSocial", "El código debe tener exactamente 6 caracteres.");
+                    return View(user);
+                }
+
+                // 🔹 Buscar el código ingresado en la tabla CodigoSocial
+                var codigoSocial = _context.DbSetCodigoSocial
+                    .FirstOrDefault(c => c.Codigo.ToUpper() == codigoIngresado);
+
+                if (codigoSocial == null)
+                {
+                    ModelState.AddModelError("RazonSocial", "❌ El código ingresado no es válido.");
+                    return View(user);
+                }
+
+                // 🔹 Asignar el rol y la relación foránea
+                user.Rol = codigoSocial.Rol;
+                user.IdCodigo = codigoSocial.IdCodigo; // FK hacia la tabla CodigoSocial
+
+                // 🔹 Guardar usuario
                 _context.DbSetUser.Add(user);
                 _context.SaveChanges();
-                return RedirectToAction("Login");
+
+                // 🔹 Guardamos en TempData para mostrar modal de éxito
+                TempData["RegistroExitoso"] = "✅ Registro completado correctamente.";
+
+                // 🔹 Redirigimos a la misma vista (Register) para mostrar el modal
+                return RedirectToAction("Register");
             }
+
+            // Si hay errores de validación
             return View(user);
         }
 

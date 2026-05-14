@@ -15,9 +15,12 @@ namespace proyectoIngSoft.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IdEnfermedadFam { get; set; }
     
-
         [Required]
         public string NombreFamiliar { get; set; }
+        [Required]
+        public DateOnly FechaIni { get; set; }
+        [Required]
+        public DateOnly FechaFin { get; set; }
         [NotNull]
         [Required]
         public string Parentesco { get; set; }
