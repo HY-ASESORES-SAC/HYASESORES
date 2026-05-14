@@ -36,6 +36,17 @@
         </div>
 
         <div class="form-group">
+            <label>Fecha de Inicio</label>
+            <input asp-for="FechaIni" type="date" class="form-control" />
+            <span asp-validation-for="FechaIni" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label>Fecha de Fin</label>
+            <input asp-for="FechaFin" type="date" class="form-control" />
+            <span asp-validation-for="FechaFin" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
             <label>¿Parto Múltiple? *</label>
             <select asp-for="PartoMult" class="form-control">
                 <option value="">Seleccionar opción</option>

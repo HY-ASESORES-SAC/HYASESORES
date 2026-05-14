@@ -1,7 +1,9 @@
 @model List<proyectoIngSoft.Models.Lista>
 <div class="header">
         <h2>Control de solicitudes</h2>
-        <button class="btn-consulta">Consulta con ESSALUD</button>
+        <a asp-controller="SistemaSolicitud" asp-action="Index" class="btn-consulta">
+        Consulta con ESSALUD
+        </a>
     </div>
 
 <div class="solicitudes-container">
@@ -157,41 +159,36 @@
             </thead>
         </table>
 
-        <!-- Solo el body con scroll -->
+        <div class="solicitudes-container">
+    
+    <!-- Tabla reemplazada por funcionalidad del módulo ESSALUD -->
+    <div class="table-container">
+        <table class="solicitudes-table">
+            <thead>
+                <tr>
+                    <th>Empleado</th>
+                    <th>DNI</th>
+                    <th>Razón del Descanso</th>
+                    <th>Fecha Registro</th>
+                    <th>Resultado ESSALUD</th>
+                </tr>
+            </thead>
+        </table>
+
         <div class="table-body-scroll">
             <table class="solicitudes-table">
-                <tbody id="tablaSolicitudes">
-                    @foreach (var item in Model)
-                    {
-                        <tr>
-                            <td>
-                                <strong>@item.Username @item.Apellidos</strong><br />
-                                <span class="dni">DNI: @item.Dni</span>
-                            </td>
-                            <td>@item.Observaciones</td>
-                            <td>@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
-                            <!-- Columna Edsalus con divs de color -->
-                            <td>
-                                <div class="badge-color verde">Valido</div>
-                            </td>
-                            <!-- Columna Estado con divs de color -->
-                            <td>
-                                <div class="badge-color morado">Procesado</div>
-                            </td>
-                            <td>
-                                <a href="javascript:void(0)"
-                                   class="btn-detalles"
-                                   data-descanso-id="@item.IdDescanso"
-                                   onclick="abrirModal(@item.IdDescanso)">
-                                    Ver Detalles
-                                </a>
-                            </td>
-                        </tr>
-                    }
+                <tbody id="tablaProcesadas">
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-3">
+                            Aún no hay solicitudes procesadas.
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
     </div>
+</div>
+
 </div>
 
 <!-- MODAL -->
@@ -244,6 +241,29 @@ function filtrarTabla() {
         fila.style.display = mostrar ? "" : "none";
     });
 }
+
+ document.addEventListener("DOMContentLoaded", () => {
+            fetch("/SistemaSolicitud/ListaSolicitudes")
+                .then(res => res.text())
+                .then(html => {
+                    // Buscar la tabla de procesadas en la vista de SistemaSolicitud
+                    const tempDiv = document.createElement("div");
+                    tempDiv.innerHTML = html;
+
+                    const tbodyESSALUD = tempDiv.querySelector("#tbodyProcesadas");
+                    const procesadasTable = document.getElementById("tablaProcesadas");
+                    const countBadge = document.getElementById("countProcesadas");
+
+                    if (tbodyESSALUD && procesadasTable) {
+                        procesadasTable.innerHTML = tbodyESSALUD.innerHTML;
+                        const total = procesadasTable.querySelectorAll("tr").length;
+                        countBadge.textContent = total;
+                    }
+                })
+                .catch(err => {
+                    console.error("Error cargando procesadas:", err);
+                });
+        });
 </script>
 
 <style>

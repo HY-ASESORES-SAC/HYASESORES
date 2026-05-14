@@ -1,0 +1,285 @@
+@model IEnumerable<dynamic>
+
+<div class="container-fluid py-4">
+    <h5 class="fw-semibold mb-2 text-primary">
+         Asistente de Bienestar
+    </h5>
+    <p class="text-muted mb-4">Gestión de usuarios con descanso médico prolongado</p>
+
+    <!-- === TARJETAS RESUMEN === -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-4">
+            <div class="summary-card">
+                <h6>Total Usuarios</h6>
+                <span class="summary-number">@Model.Count()</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="summary-card">
+                <h6>En Descanso Activo</h6>
+                <span class="summary-number">
+                    @Model.Count(x => x.EstadoSubsidioA == "Descanso Activo")
+                </span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="summary-card">
+                <h6>Convertidos a Subsidio</h6>
+                <span class="summary-number">
+                    @Model.Count(x => x.EstadoSubsidioA == "Subsidio")
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- === TABLA PRINCIPAL === -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-semibold">Usuarios con Descanso Médico Prolongado (&gt; 30 días)</h6>
+            <input type="text" id="buscar" class="search-box" placeholder="🔍 Buscar por DNI, nombre o motivo..." onkeyup="filtrarTabla()" />
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="tablaDescansos">
+                    <thead class="table-light">
+                        <tr>
+                            <th>DNI</th>
+                            <th>Nombre</th>
+                            <th>Motivo</th>
+                            <th>Documentos</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th>Días de Descanso</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            foreach (var d in Model)
+                            {
+                                <tr>
+                                    <td>@d.Dni</td>
+                                    <td>@d.Nombre</td>
+                                    <td>
+                                        <span class="badge motivo">@d.Motivo</span>
+                                    </td>
+                                    <td>
+                                        <a href="#" class="text-primary text-decoration-none">
+                                            Ver Documentos (3)
+                                        </a>
+                                    </td>
+                                    <td>@d.FechaIni.ToString("dd/MM/yyyy")</td>
+                                    <td>@d.FechaFin.ToString("dd/MM/yyyy")</td>
+                                    <td>@d.Dias días</td>
+                                    <td>
+                                        @if (d.EstadoSubsidioA == "Subsidio")
+                                        {
+                                            <span class="badge estado-subsidio">Subsidio</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge estado-activo">@d.EstadoSubsidioA</span>
+                                        }
+                                    </td>
+                                    <td>
+    @if (d.EstadoSubsidioA == "Subsidio")
+    {
+        <span class="badge text-success bg-light border border-success fw-semibold px-3 py-2">
+            ✓ convertido
+        </span>
+    }
+    else
+    {
+        <button class="btn btn-ver" onclick="verDetalleProlongado(@d.IdDescanso)">
+            Ver Detalles
+        </button>
+    }
+</td>
+
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4">
+                                    No se encontraron descansos prolongados.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- === MODAL DETALLE === -->
+<div class="modal fade" id="detalleModal" tabindex="-1" aria-labelledby="detalleLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="detalleLabel">Detalles del Descanso Médico</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="detalleContenido">
+                <div class="text-center text-muted p-4">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2">Cargando detalles...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- === ESTILOS === -->
+<style>
+body { background-color: #f8f9fa; }
+
+.summary-card {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 1.2rem 1rem;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.summary-card h6 {
+    color: #6c757d;
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+}
+.summary-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2d2f31;
+}
+
+.search-box {
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 6px 12px;
+    min-width: 260px;
+    outline: none;
+    font-size: 0.9rem;
+    transition: 0.2s;
+}
+.search-box:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+}
+
+.table th {
+    font-size: 0.9rem;
+    color: #495057;
+}
+.table td {
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+.table-hover tbody tr:hover {
+    background-color: #f9fafb;
+}
+
+.badge.motivo {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background-color: #f1f1f1;
+    color: #333;
+    border: 1px solid #e3e6e9;
+}
+.badge.estado-subsidio {
+    background-color: #c9f7d1;
+    color: #116b2b;
+    font-weight: 500;
+}
+.badge.estado-activo {
+    background-color: #e0e0e0;
+    color: #444;
+    font-weight: 500;
+}
+
+.btn-ver {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    transition: 0.2s;
+}
+.btn-ver:hover {
+    background-color: #0062cc;
+}
+
+/* Modal */
+.modal-content {
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+.modal-header {
+    border-bottom: 1px solid #e3e6f0;
+}
+.badge.text-success {
+    font-size: 0.85rem;
+    border-radius: 6px;
+}
+
+</style>
+
+<!-- === SCRIPTS === -->
+<script>
+function filtrarTabla() {
+    const texto = document.getElementById("buscar").value.toLowerCase();
+    const filas = document.querySelectorAll("#tablaDescansos tbody tr");
+    filas.forEach(f => {
+        const contenido = f.innerText.toLowerCase();
+        f.style.display = contenido.includes(texto) ? "" : "none";
+    });
+}
+
+function verDetalleProlongado(id) {
+    const modal = new bootstrap.Modal(document.getElementById('detalleModal'));
+    document.getElementById('detalleContenido').innerHTML = `
+        <div class='text-center text-muted p-4'>
+            <div class='spinner-border text-primary'></div>
+            <p class='mt-2'>Cargando detalles...</p>
+        </div>`;
+    modal.show();
+    $.ajax({
+        url: '/Lista/DetalleProlongado',
+        type: 'GET',
+        data: { descansoId: id },
+        success: function (html) {
+            $('#detalleContenido').html(html);
+        },
+        error: function () {
+            $('#detalleContenido').html("<p class='text-danger text-center'>Error al cargar los detalles.</p>");
+        }
+    });
+}
+
+function validarSubsidioProlongado(id) {
+    if (!confirm("¿Confirmar validación de subsidio para este descanso?")) return;
+    $.ajax({
+        type: "POST",
+        url: "/Lista/ValidarSubsidioA",
+        data: { id: id },
+        success: function (response) {
+            if (response.success) {
+                alert("Descanso validado correctamente como Subsidio ✅");
+                location.reload();
+            } else {
+                alert("Error: " + response.message);
+            }
+        },
+        error: function () {
+            alert("Error al validar el descanso.");
+        }
+    });
+}
+</script>

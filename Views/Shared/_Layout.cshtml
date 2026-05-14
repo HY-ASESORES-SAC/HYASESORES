@@ -35,6 +35,21 @@
                             {
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="Index">Lista</a>
+                                </li>          
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="DescansosProlongados">Subsidios</a>
+                                </li>     
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="SubsidiosJefe">SubsidiosJefe</a>
+                                </li>             
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="SupervisionSubsidios">SupervisionSubsidios</a>
+                                </li>
+                            }
+                            if (rol == "Bienestar")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="SistemaSolicitud" asp-action="Index">Solicitudes</a>
                                 </li>
                             }
                             else
@@ -42,6 +57,7 @@
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="SistemaSolicitud" asp-action="Index">Solicitudes</a>
                                 </li>
+                                
                             }
                         }
                     </ul>
