@@ -25,8 +25,7 @@ namespace proyectoIngSoft.Controllers
         // GET: /Accidente/Index
         public IActionResult Index()
         {
-            var documentos = _context.DocumentosMedicos.ToList();
-
+           
             return View();
         }
 
@@ -66,6 +65,8 @@ namespace proyectoIngSoft.Controllers
                     UserId = user.IdUser,               // FK a T_Usuarios
                     TipoDescansoId = 6,                 // 1 = Accidente
                     FechaSolicitud = DateTime.UtcNow,
+                    FechaIni = DateTime.SpecifyKind(model.FechaIni.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+                    FechaFin = DateTime.SpecifyKind(model.FechaFin.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
                     AccidenteId = model.IdAccidente     // FK al Accidente recién creado
                 };
 

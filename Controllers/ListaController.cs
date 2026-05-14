@@ -162,6 +162,185 @@ namespace proyectoIngSoft.Controllers
             return File(documento.Archivo, "application/pdf");
         }
 
+
+        public IActionResult DescansosProlongados()
+        {
+            var descansos = _context.DbSetDescanso
+                .Include(d => d.User)
+                .Include(d => d.TipoDescanso)
+                .ToList()
+                .Where(d =>
+                {
+                    // Cálculo en días entre FechaInicio y FechaFin
+                    var dias = (d.FechaFin - d.FechaIni).TotalDays;
+                    return dias > 30;
+                })
+                .Select(d => new
+                {
+                    d.IdDescanso,
+                    d.User.Dni,
+                    Nombre = $"{d.User.Username} {d.User.Apellidos}",
+                    Motivo = d.TipoDescanso.Nombre,
+                    d.FechaIni,
+                    d.FechaFin,
+                    Dias = (d.FechaFin - d.FechaIni).TotalDays,
+                    d.EstadoSubsidioA,
+                    Estado = d.EstadoESSALUD ?? "Descanso Activo"
+                })
+                .ToList();
+
+            return View("DescansosProlongados", descansos);
+        }
+
+      
+        [HttpPost]
+        public IActionResult ValidarSubsidioA(int id)
+        {
+            try
+            {
+                // Usa la DbSet correcta en tu ApplicationDbContext
+                var descanso = _context.DbSetDescanso.FirstOrDefault(d => d.IdDescanso == id);
+                if (descanso == null)
+                    return Json(new { success = false, message = "Descanso no encontrado." });
+
+                // Cambiamos su estado a "Subsidio"
+                descanso.EstadoSubsidioA = "Subsidio";
+
+                _context.Update(descanso);
+                _context.SaveChanges();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                // Devuelve el mensaje del error para debug en el frontend (temporal)
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
+        public IActionResult DetalleProlongado(int descansoId)
+        {
+            var descanso = _context.DbSetDescanso
+                .Include(d => d.User)
+                .Include(d => d.TipoDescanso)
+                .Include(d => d.DocumentosMedicos)
+                .FirstOrDefault(d => d.IdDescanso == descansoId);
+
+            if (descanso == null) return NotFound();
+
+            return PartialView("_DetalleProlongado", descanso);
+        }
+
+
+        public IActionResult SubsidiosJefe()
+        {
+            var descansos = _context.DbSetDescanso
+                .Include(d => d.User)
+                .Include(d => d.TipoDescanso)
+                .Where(d => d.EstadoSubsidioA == "Subsidio")
+                .Select(d => new
+                {
+                    d.IdDescanso,
+                    d.User.Dni,
+                    Nombre = $"{d.User.Username} {d.User.Apellidos}",
+                    Motivo = d.TipoDescanso.Nombre,
+                    d.FechaIni,
+                    d.FechaFin,
+                    Dias = (d.FechaFin - d.FechaIni).TotalDays,
+                    d.EstadoSubsidioA,
+                    d.EstadoSubsidioJ
+                })
+                .ToList();
+
+                ViewBag.Total = descansos.Count;
+                ViewBag.Pendientes = descansos.Count(d => d.EstadoSubsidioJ == "Pendiente" || d.EstadoSubsidioJ == null);
+                ViewBag.Aprobados = descansos.Count(d => d.EstadoSubsidioJ == "Aprobado");
+                ViewBag.Rechazados = descansos.Count(d => d.EstadoSubsidioJ == "Rechazado");
+
+            return View("SubsidiosJefe", descansos);
+        }
+
+        [HttpPost]
+        public IActionResult AprobarSubsidioJ(int id)
+        {
+            var descanso = _context.DbSetDescanso.FirstOrDefault(d => d.IdDescanso == id);
+            if (descanso == null)
+                return Json(new { success = false, message = "No se encontró el descanso." });
+
+            descanso.EstadoSubsidioJ = "Aprobado";
+            _context.SaveChanges();
+
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public IActionResult RechazarSubsidioJ(int id)
+        {
+            var descanso = _context.DbSetDescanso.FirstOrDefault(d => d.IdDescanso == id);
+            if (descanso == null)
+                return Json(new { success = false, message = "No se encontró el descanso." });
+
+            descanso.EstadoSubsidioJ = "Rechazado";
+            _context.SaveChanges();
+
+            return Json(new { success = true });
+        }
+// ============================
+// SUPERVISIÓN Y VALIDACIÓN
+// ============================
+public IActionResult SupervisionSubsidios()
+{
+    var descansos = _context.DbSetDescanso
+        .Include(d => d.User)
+        .Include(d => d.TipoDescanso)
+        .Where(d => d.EstadoSubsidioA == "Subsidio" &&
+                    (d.EstadoSubsidioJ == "Aprobado" || d.EstadoSubsidioJ == "Rechazado"))
+        .Select(d => new SupervisionSubsidioViewModel
+        {
+            IdDescanso = d.IdDescanso,
+            Dni = d.User.Dni,
+            Nombre = $"{d.User.Username} {d.User.Apellidos}",
+            Motivo = d.TipoDescanso.Nombre,
+            FechaIni = d.FechaIni,
+            FechaFin = d.FechaFin,
+            Dias = (d.FechaFin - d.FechaIni).TotalDays,
+            EstadoSubsidioA = d.EstadoSubsidioA,
+            EstadoSubsidioJ = d.EstadoSubsidioJ
+        })
+        .ToList();
+
+    return View("SupervisionSubsidios", descansos);
+}
+
+
+[HttpPost]
+public IActionResult EnviarSeleccionados([FromBody] List<int> idsSeleccionados)
+{
+    if (idsSeleccionados == null || !idsSeleccionados.Any())
+        return BadRequest("No se seleccionaron registros.");
+
+    var seleccionados = _context.DbSetDescanso
+        .Include(d => d.User)
+        .Include(d => d.TipoDescanso)
+        .Where(d => idsSeleccionados.Contains(d.IdDescanso))
+        .Select(d => new TrabajadorSeleccionadoViewModel
+        {
+            IdDescanso = d.IdDescanso,
+            Dni = d.User.Dni,
+            Nombre = $"{d.User.Username} {d.User.Apellidos}",
+            Motivo = d.TipoDescanso.Nombre,
+            FechaIni = d.FechaIni,
+            FechaFin = d.FechaFin,
+            Dias = (d.FechaFin - d.FechaIni).TotalDays,
+            EstadoSubsidioA = d.EstadoSubsidioA,
+            EstadoSubsidioJ = d.EstadoSubsidioJ
+        })
+        .ToList();
+
+    TempData["Seleccionados"] = System.Text.Json.JsonSerializer.Serialize(seleccionados);
+    return Ok();
+}
         // ======================
         // MANEJO DE ERRORES
         // ======================

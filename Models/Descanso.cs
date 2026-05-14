@@ -24,9 +24,15 @@ namespace proyectoIngSoft.Models
         [Required]
         public int TipoDescansoId { get; set; }
         public TipoDescanso TipoDescanso { get; set; }
+
+
         [Required]
+        public DateTime FechaIni { get; set; }
 
+        [Required]
+        public DateTime FechaFin { get; set; } 
 
+        [Required]
         public DateTime FechaSolicitud { get; set; }
 
 
@@ -50,9 +56,13 @@ namespace proyectoIngSoft.Models
         public ICollection<DocumentoMedico> DocumentosMedicos { get; set; } = new List<DocumentoMedico>();
 
 
-        
+        [StringLength(50)]
+        public string EstadoESSALUD { get; set; } = "En Proceso"; // En Proceso | Válido | No válido
 
+        [StringLength(50)]
+        public string EstadoSubsidioA { get; set; } = "Descanso Activo"; 
 
-
+        [StringLength(50)]
+        public string EstadoSubsidioJ { get; set; } = "Pendiente"; 
     }
 }

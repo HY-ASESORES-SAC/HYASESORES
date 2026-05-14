@@ -31,27 +31,69 @@ namespace proyectoIngSoft.Controllers
             return View();
         }
 
-         public IActionResult ListaSolicitudes()
+        public IActionResult ListaSolicitudes()
         {
-            var lista = _context.DbSetDescanso
+            // var lista = _context.DbSetDescanso
+            // .Include(d => d.User)
+            // .Include(d => d.TipoDescanso)
+            // .Select(d => new Lista
+            // {
+            //     Username = d.User.Username,
+            //     Apellidos = d.User.Apellidos,
+            //     Dni = d.User.Dni,
+            //     Observaciones = d.TipoDescanso.Nombre,
+            //     FechaSolicitud = d.FechaSolicitud,
+            //     Estado = d.EstadoESSALUD ?? "En Proceso",
+            //     IdUser = d.User.IdUser,
+            //     IdDescanso = d.IdDescanso
+            // })
+            // .ToList();
+
+            // return View("ListaSolicitudes", lista);
+
+            var descansos = _context.DbSetDescanso
                 .Include(d => d.User)
                 .Include(d => d.TipoDescanso)
+                .ToList();
+
+            var pendientes = descansos
+                .Where(d => d.EstadoESSALUD == null || d.EstadoESSALUD == "En Proceso")
                 .Select(d => new Lista
                 {
+                    IdDescanso = d.IdDescanso,
                     Username = d.User.Username,
                     Apellidos = d.User.Apellidos,
                     Dni = d.User.Dni,
                     Observaciones = d.TipoDescanso.Nombre,
                     FechaSolicitud = d.FechaSolicitud,
-                    Estado = "En Proceso", // Puedes mapear según tu lógica
-                    IdUser = d.User.IdUser,
-                    IdDescanso = d.IdDescanso
+                    Estado = d.EstadoESSALUD ?? "En Proceso",
+                    IdUser = d.User.IdUser
                 })
                 .ToList();
 
-            return View("ListaSolicitudes", lista);
- 
+            var procesadas = descansos
+                .Where(d => d.EstadoESSALUD == "Válido" || d.EstadoESSALUD == "No válido")
+                .Select(d => new Lista
+                {
+                    IdDescanso = d.IdDescanso,
+                    Username = d.User.Username,
+                    Apellidos = d.User.Apellidos,
+                    Dni = d.User.Dni,
+                    Observaciones = d.TipoDescanso.Nombre,
+                    FechaSolicitud = d.FechaSolicitud,
+                    Estado = d.EstadoESSALUD,
+                    IdUser = d.User.IdUser
+                })
+                .ToList();
+
+            ViewBag.Pendientes = pendientes;
+            ViewBag.Procesadas = procesadas;
+
+            return View();
+
         }
+
+
 
         public IActionResult DetalleDescanso(int descansoId)
         {
@@ -90,6 +132,31 @@ namespace proyectoIngSoft.Controllers
         public IActionResult Error()
         {
             return View("Error!");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ActualizarEstadosESSALUD([FromBody] List<EstadoUpdateDto> solicitudes)
+        {
+            if (solicitudes == null || !solicitudes.Any())
+                return BadRequest("No hay solicitudes para actualizar.");
+
+            foreach (var item in solicitudes)
+            {
+                var descanso = await _context.DbSetDescanso.FindAsync(item.IdDescanso);
+                if (descanso != null)
+                {
+                    descanso.EstadoESSALUD = item.Estado;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { success = true, message = "Estados actualizados correctamente." });
+        }
+
+        public class EstadoUpdateDto
+        {
+            public int IdDescanso { get; set; }
+            public string Estado { get; set; } = "";
         }
     }
 }
