@@ -24,7 +24,7 @@ namespace proyectoIngSoft.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<CodigoSocial> DbSetCodigoSocial { get; set; }
         public DbSet<NotificacionSimulada> DbSetNotificacionSimulada { get; set; }
-        public DbSet<CalendarioEvento> DbSetCalendarioEvento { get; set; } = null!;
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

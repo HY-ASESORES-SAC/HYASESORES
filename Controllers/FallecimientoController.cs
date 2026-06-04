@@ -27,9 +27,10 @@ namespace proyectoIngSoft.Controllers
         {
             return View();
         }
+
         [HttpPost]
-       
-        public IActionResult Registrar(Fallecimiento model, List<IFormFile> archivos)
+        [ValidateAntiForgeryToken]
+        public IActionResult Registrar(Fallecimiento model)
         {
             // Debug: Log all form values
             _logger.LogInformation("=== INICIO REGISTRO FALLECIMIENTO ===");
@@ -44,45 +45,39 @@ namespace proyectoIngSoft.Controllers
             
             if (!ModelState.IsValid)
             {
-                var errors = string.Join("; ", ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage));
-                _logger.LogWarning("ModelState inválido en Fallecimiento: {Errors}", errors);
-                ViewData["Message"] = "Datos de entrada no válidos: " + errors;
-                return View("Index", model);
-            }
-
-            try
-            {
-                // 1. Obtener usuario actual
-                var user = UserHelper.GetCurrentUser(HttpContext, _context);
-                if (user == null)
+                try
                 {
-                    ViewData["Message"] = "No hay usuario autenticado. Por favor inicie sesión.";
-                    return RedirectToAction("Login", "Auth");
-                }
+                    // 1. Obtener usuario actual
+                    var user = UserHelper.GetCurrentUser(HttpContext, _context);
+                    if (user == null)
+                    {
+                        // No hay usuario autenticado
+                        ViewData["Message"] = "No hay usuario autenticado. Por favor inicie sesión.";
+                        return RedirectToAction("Login", "Auth");
+                    }
 
-                // 2. Guardar Fallecimiento
-                _context.DbSetFallecimiento.Add(model);
-                _context.SaveChanges();
+                    // 2. Guardar Fallecimiento
+                    _context.DbSetFallecimiento.Add(model);
+                    _context.SaveChanges();
 
-                // 3. Crear Descanso
-                var descanso = new Descanso
-                {
-                    UserId = user.IdUser,               // FK a T_Usuarios
-                    TipoDescansoId = 4,                 // 4 = Fallecimiento Familiar
-                    FechaSolicitud = DateTime.UtcNow,
-                    FechaIni = DateTime.SpecifyKind(model.FechaIni.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
-                    FechaFin = DateTime.SpecifyKind(model.FechaFin.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
-                    FallecimientoId = model.IdFallec,
-                    EstadoProcesado = "Pendiente"       // Inicializar EstadoProcesado
-                };
+                    // 3. Crear Descanso (usar conversión segura de fechas)
+                    var descanso = new Descanso
+                    {
+                        UserId = user.IdUser,               // FK a T_Usuarios
+                        TipoDescansoId = 4,                 // 4 = Fallecimiento Familiar
+                        FechaSolicitud = DateTime.UtcNow,
+                        FechaIni = DateTime.SpecifyKind(model.FechaIni.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+                        FechaFin = DateTime.SpecifyKind(model.FechaFin.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+                        FallecimientoId = model.IdFallec
+                    };
 
                 _context.DbSetDescanso.Add(descanso);
                 _context.SaveChanges();
 
-                // 4. Guardar archivos adjuntos
-                if (archivos != null && archivos.Any())
+                    ViewData["Message"] = "Fallecimiento registrado con éxito";
+                    return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
+                }
+                catch (Exception ex)
                 {
                     foreach (var archivo in archivos)
                     {
@@ -115,12 +110,39 @@ namespace proyectoIngSoft.Controllers
                 ViewData["Message"] = "Error al registrar: " + ex.Message;
                 return View("Index", model);
             }
+            return View("Index");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View("Error!");
+            return View("Error");
+        }
+
+		// Método auxiliar para convertir fechas a UTC de forma robusta
+        private DateTime ConvertToUtc(object dateObj)
+        {
+            if (dateObj == null)
+                throw new ArgumentNullException(nameof(dateObj), "La fecha no puede ser null");
+
+            if (dateObj is DateTime dt)
+            {
+                return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+            }
+
+#if NET6_0_OR_GREATER
+            if (dateObj is DateOnly d)
+            {
+                return DateTime.SpecifyKind(d.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+            }
+#endif
+            var s = dateObj.ToString();
+            if (DateTime.TryParse(s, out var parsed))
+            {
+                return DateTime.SpecifyKind(parsed, DateTimeKind.Utc);
+            }
+
+            throw new InvalidOperationException("Tipo de fecha no soportado: " + dateObj.GetType());
         }
     }
 }
