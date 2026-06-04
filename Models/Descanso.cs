@@ -25,7 +25,7 @@ namespace proyectoIngSoft.Models
         public int TipoDescansoId { get; set; }
         public TipoDescanso TipoDescanso { get; set; }
 
-
+        
         [Required]
         public DateTime FechaIni { get; set; }
 
@@ -60,9 +60,12 @@ namespace proyectoIngSoft.Models
         public string EstadoESSALUD { get; set; } = "En Proceso"; // En Proceso | Válido | No válido
 
         [StringLength(50)]
-        public string EstadoSubsidioA { get; set; } = "Descanso Activo"; 
+        public string EstadoSubsidioA { get; set; } = "Descanso Activo";
 
         [StringLength(50)]
         public string EstadoSubsidioJ { get; set; } = "Pendiente"; 
+        
+        public string EstadoProcesado { get; set; }
+
     }
 }

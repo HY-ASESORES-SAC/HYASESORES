@@ -16,7 +16,7 @@
         </div>
 
         <!-- Tipo de Licencia -->
-        <div >
+        <div>
             <p class="label-title">Tipo de Licencia</p>
             <p class="status-blue">@Model.TipoDescanso.Nombre</p>
 
@@ -27,7 +27,22 @@
                 </div>
                 <div class="col">
                     <p class="label-title">Estado Actual</p>
-                    <p class="status-blue">En Proceso</p>
+                    @if (Model.EstadoProcesado == "Procesado")
+                    {
+                        <span class="badge-color morado">Procesado</span>
+                    }
+                    else if (Model.EstadoProcesado == "Aceptado")
+                    {
+                        <span class="badge-color verde">Aceptado</span>
+                    }
+                    else if (Model.EstadoProcesado == "Rechazado")
+                    {
+                        <span class="badge-color rojo">Rechazado</span>
+                    }
+                    else
+                    {
+                        <span class="badge-color morado">Procesado</span>
+                    }
                 </div>
             </div>
         </div>
@@ -79,40 +94,69 @@
             }
         </div>
 
-        <!-- Mensaje para trabajador -->
+        <!-- Botones para cambiar estado -->
         <div>
             <p class="label-title">Cambiar Estado de la Solicitud</p>
-            <form asp-action="EnviarObservacion" asp-controller="Lista" method="post">
-                <input type="hidden" name="descansoId" value="@Model.IdDescanso" />
-                <label class="form-label">Mensaje para el trabajador</label>
-                <textarea name="mensaje" class="form-control custom-textarea" rows="3"
-                          placeholder="Escriba el mensaje que se enviará al trabajador explicando la observación..."></textarea>
-                <button type="submit" class="btn btn-warning mt-3">Enviar Observación</button>
-            </form>
+            <div class="d-grid gap-2">
+                <button type="button" 
+                        class="btn btn-success" 
+                        onclick="cambiarEstado(@Model.IdDescanso, 'Aceptado')">
+                    ✅ Aceptado
+                </button>
+                <button type="button" 
+                        class="btn btn-danger" 
+                        onclick="cambiarEstado(@Model.IdDescanso, 'Rechazado')">
+                    ❌ Rechazado
+                </button>
+            </div>
+            <div id="mensajeResultado" class="mt-2"></div>
         </div>
         
     </div>
 </div>
 
-
-@section Scripts {
 <script>
-    function verPdfData(el) {
-        const id = el.getAttribute('data-id');
-        const name = el.getAttribute('data-name');
-        verPdf(id, name);
+function cambiarEstado(descansoId, nuevoEstado) {
+    if (!confirm(`¿Está seguro de cambiar el estado a "${nuevoEstado}"?`)) {
+        return;
     }
 
-    function verPdf(id, name) {
-        const url = '/Lista/VerDocumento?id=' + encodeURIComponent(id);
-        document.getElementById('pdfViewer').src = url;
-        document.getElementById('pdfModalLabel').innerText = name;
-        const modal = new bootstrap.Modal(document.getElementById('pdfModal'));
-        modal.show();
-    }
-</script>
+    $.post("/Lista/CambiarEstadoProcesada", 
+    { 
+        descansoId: descansoId, 
+        nuevoEstado: nuevoEstado 
+    }, 
+    function (response) {
+        if (response.success) {
+            $('#mensajeResultado').html(`
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    ${response.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+            
+            // Cerrar el modal después de 2 segundos y recargar la página
+            setTimeout(function() {
+                $('#detalleModalProcesadas').modal('hide');
+                location.reload();
+            }, 2000);
+        } else {
+            $('#mensajeResultado').html(`
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ${response.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+        }
+    }).fail(function() {
+        $('#mensajeResultado').html(`
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                Error al cambiar el estado.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `);
+    });
 }
-
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-
 <link rel="stylesheet" href="~/css/Modal.css" asp-append-version="true">

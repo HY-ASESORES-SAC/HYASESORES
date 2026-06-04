@@ -1,5 +1,8 @@
 @model List<proyectoIngSoft.Models.Lista> 
-
+@{
+    var solicitudesProcesadas = ViewBag.SolicitudesProcesadas as List<proyectoIngSoft.Models.Lista>;
+    var countProcesadas = ViewBag.CountProcesadas ?? 0;
+}
 <div class="header">
     <h2>Control de solicitudes</h2>
     <a asp-controller="SistemaSolicitud" asp-action="ListaSolicitudes" class="btn-consulta">
@@ -7,12 +10,12 @@
     </a>
 </div>
 
+<!-- PRIMERA TABLA: SOLICITUDES EN PROCESO -->
 <div class="solicitudes-container">
-
     <div class="tabs">
         <span class="tab active">Solicitudes en Proceso <span class="badge">@Model.Count solicitudes</span></span>
     </div>
-    <p>Filtros para Solicitudes en Proceso </p>
+    <p class="filters-title">Filtros para Solicitudes en Proceso</p>
 
     <div class="filters">
         <div class="filter-item">
@@ -47,7 +50,6 @@
     </div>
 
     <div class="table-container">
-        <!-- Cabecera fija -->
         <table class="solicitudes-table">
             <thead>
                 <tr>
@@ -60,7 +62,6 @@
             </thead>
         </table>
 
-        <!-- Solo el body con scroll -->
         <div class="table-body-scroll">
             <table class="solicitudes-table">
                 <tbody id="tablaSolicitudes">
@@ -101,25 +102,26 @@
             </table>
         </div>
     </div>
-
 </div>
 
+<!-- SEGUNDA TABLA: SOLICITUDES PROCESADAS -->
 <div class="solicitudes-container">
-
     <div class="tabs">
-        <span class="tab active">Solicitudes Procesadas <span class="badge">@Model.Count solicitudes</span></span>
+        <span class="tab active">Solicitudes Procesadas 
+            <span class="badge">@countProcesadas solicitudes</span>
+        </span>
     </div>
 
-    <p>Filtros para Solicitudes Procesadas </p>
+    <p class="filters-title">Filtros para Solicitudes Procesadas</p>
 
     <div class="filters">
         <div class="filter-item">
             <label>Buscar Empleado</label>
-            <input type="text" id="filtroEmpleado" placeholder="Nombre o DNI..." onkeyup="filtrarTabla()" />
+            <input type="text" id="filtroEmpleadoProcesadas" placeholder="Nombre o DNI..." onkeyup="filtrarTablaProcesadas()" />
         </div>
         <div class="filter-item">
             <label>Filtro de Fecha</label>
-            <select id="filtroFecha" onchange="filtrarTabla()">
+            <select id="filtroFechaProcesadas" onchange="filtrarTablaProcesadas()">
                 <option value="">Todas las fechas</option>
                 <option value="hoy">Hoy</option>
                 <option value="semana">Esta semana</option>
@@ -128,11 +130,11 @@
         </div>
         <div class="filter-item">
             <label>Fecha Específica</label>
-            <input type="date" id="fechaEspecifica" onchange="filtrarTabla()" />
+            <input type="date" id="fechaEspecificaProcesadas" onchange="filtrarTablaProcesadas()" />
         </div>
         <div class="filter-item">
             <label>Tipo de Licencia</label>
-            <select id="filtroLicencia" onchange="filtrarTabla()">
+            <select id="filtroLicenciaProcesadas" onchange="filtrarTablaProcesadas()">
                 <option value="">Todas las razones</option>
                 <option value="Accidente">Accidente</option>
                 <option value="Maternidad">Maternidad</option>
@@ -145,50 +147,83 @@
     </div>
 
     <div class="table-container">
-        <!-- Cabecera fija -->
         <table class="solicitudes-table">
             <thead>
                 <tr>
                     <th>Empleado</th>
                     <th>Razón del Descanso</th>
-                    <th>Fecha de Registro</th>
-                    <th>Edsalus</th>
-                    <th>Estado</th>
+                    <th>Fecha Registro</th>
+                    <th>ESSALUD</th>
+                    <th>Estado</th> <!-- NUEVA COLUMNA -->
                     <th>Acciones</th>
                 </tr>
             </thead>
         </table>
 
-        <div class="solicitudes-container">
-
-            <!-- Tabla reemplazada por funcionalidad del módulo ESSALUD -->
-            <div class="table-container">
-                <table class="solicitudes-table">
-                    <thead>
-                        <tr>
-                            <th>Empleado</th>
-                            <th>DNI</th>
-                            <th>Razón del Descanso</th>
-                            <th>Fecha Registro</th>
-                            <th>Resultado ESSALUD</th>
-                        </tr>
-                    </thead>
-                </table>
-
-                <div class="table-body-scroll">
-                    <table class="solicitudes-table">
-                        <tbody id="tablaProcesadas">
+        <div class="table-body-scroll">
+            <table class="solicitudes-table">
+                <tbody id="tablaProcesadas">
+                    @if (solicitudesProcesadas != null && solicitudesProcesadas.Any())
+                    {
+                        foreach (var item in solicitudesProcesadas)
+                        {
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-3">
-                                    Aún no hay solicitudes procesadas.
+                                <td>
+                                    <strong>@item.Username @item.Apellidos</strong><br />
+                                    <span class="dni">DNI: @item.Dni</span>
+                                </td>
+                                <td>@item.Observaciones</td>
+                                <td>@item.FechaSolicitud.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (item.Estado == "Válido")
+                                    {
+                                        <span class="badge-color verde">Válido</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-color rojo">No válido</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.EstadoProcesado == "Procesado")
+                                    {
+                                        <span class="badge-color morado">Procesado</span>
+                                    }
+                                    else if (item.EstadoProcesado == "Aceptado")
+                                    {
+                                        <span class="badge-color verde">Aceptado</span>
+                                    }
+                                    else if (item.EstadoProcesado == "Rechazado")
+                                    {
+                                        <span class="badge-color rojo">Rechazado</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-color">@item.EstadoProcesado</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="javascript:void(0)"
+                                       class="btn-detalles"
+                                       data-descanso-id="@item.IdDescanso"
+                                       onclick="abrirModalProcesadas(@item.IdDescanso)">
+                                        Ver Detalles
+                                    </a>
                                 </td>
                             </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-3">
+                                Aún no hay solicitudes procesadas.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
-
     </div>
 </div>
 
@@ -208,9 +243,20 @@
 </div>
 
 
-
-
-
+<!-- NUEVO MODAL PARA SOLICITUDES PROCESADAS -->
+<div class="modal fade" id="detalleModalProcesadas" tabindex="-1" aria-labelledby="detalleModalProcesadasLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-custom">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5>Detalles de Solicitud Procesada</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div id="detalleContenidoProcesadas">
+            <!-- Aquí se cargan los datos con AJAX -->
+        </div>
+    </div>
+  </div>
+</div>
 
 <script>
 function abrirModal(descansoId) {
@@ -222,6 +268,16 @@ function abrirModal(descansoId) {
     });
 }
 
+function abrirModalProcesadas(descansoId) {
+    $.get("/Lista/DetalleDescansoProcesadas", { descansoId: descansoId }, function (data) {
+        $("#detalleContenidoProcesadas").html(data);
+        $("#detalleModalProcesadas").modal("show");
+    }).fail(function () {
+        alert("No se pudo cargar el detalle del descanso.");
+    });
+}
+
+
 function filtrarTabla() {
     const filtroEmpleado = document.getElementById("filtroEmpleado").value.toLowerCase();
     const filtroLicencia = document.getElementById("filtroLicencia").value.toLowerCase();
@@ -232,7 +288,7 @@ function filtrarTabla() {
     filas.forEach(fila => {
         const empleado = fila.cells[0].innerText.toLowerCase();
         const licencia = fila.cells[1].innerText.toLowerCase();
-        const fecha = fila.cells[2].innerText.split("/").reverse().join("-"); // formato yyyy-MM-dd
+        const fecha = fila.cells[2].innerText.split("/").reverse().join("-");
 
         let mostrar = true;
 
@@ -244,185 +300,271 @@ function filtrarTabla() {
     });
 }
 
- document.addEventListener("DOMContentLoaded", () => {
-            fetch("/SistemaSolicitud/ListaSolicitudes")
-                .then(res => res.text())
-                .then(html => {
-                    // Buscar la tabla de procesadas en la vista de SistemaSolicitud
-                    const tempDiv = document.createElement("div");
-                    tempDiv.innerHTML = html;
+function filtrarTablaProcesadas() {
+    const filtroEmpleado = document.getElementById("filtroEmpleadoProcesadas").value.toLowerCase();
+    const filtroLicencia = document.getElementById("filtroLicenciaProcesadas").value.toLowerCase();
+    const fechaEspecifica = document.getElementById("fechaEspecificaProcesadas").value;
 
-                    const tbodyESSALUD = tempDiv.querySelector("#tbodyProcesadas");
-                    const procesadasTable = document.getElementById("tablaProcesadas");
-                    const countBadge = document.getElementById("countProcesadas");
+    const filas = document.querySelectorAll("#tablaProcesadas tr");
 
-                    if (tbodyESSALUD && procesadasTable) {
-                        procesadasTable.innerHTML = tbodyESSALUD.innerHTML;
-                        const total = procesadasTable.querySelectorAll("tr").length;
-                        countBadge.textContent = total;
-                    }
-                })
-                .catch(err => {
-                    console.error("Error cargando procesadas:", err);
-                });
-        });
+    filas.forEach(fila => {
+        if (fila.cells.length > 1) { // Solo filas con datos
+            const empleado = fila.cells[0].innerText.toLowerCase();
+            const licencia = fila.cells[1].innerText.toLowerCase();
+            const fecha = fila.cells[2].innerText.split("/").reverse().join("-");
+
+            let mostrar = true;
+
+            // Filtro por empleado (nombre o DNI)
+            if (filtroEmpleado && !empleado.includes(filtroEmpleado)) {
+                mostrar = false;
+            }
+
+            // Filtro por tipo de licencia
+            if (filtroLicencia && !licencia.includes(filtroLicencia)) {
+                mostrar = false;
+            }
+
+            // Filtro por fecha específica
+            if (fechaEspecifica && fecha !== fechaEspecifica) {
+                mostrar = false;
+            }
+
+            fila.style.display = mostrar ? "" : "none";
+        }
+    });
+}
 </script>
 
 <style>
- .solicitudes-container {
+/* ESTILOS GENERALES */
+.solicitudes-container {
     background: #fff;
     padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    font-family: 'Segoe UI', sans-serif;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
 }
 
-/* Encabezado */
+/* ENCABEZADO */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-}
-.header h2 {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 0;
-}
-.btn-consulta {
-    background: #007bff;
-    color: #fff;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 14px;
-}
-.btn-consulta:hover {
-    background: #0056b3;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
 }
 
-/* Tabs */
-.tabs {
-    margin-bottom: 15px;
+.header h2 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
 }
-.tab {
-    font-size: 15px;
+
+.btn-consulta {
+    background: #2c5aa0;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
     font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.2s;
 }
+
+.btn-consulta:hover {
+    background: #1e3d6f;
+    color: #fff;
+    text-decoration: none;
+}
+
+/* TABS */
+.tabs {
+    margin-bottom: 10px;
+}
+
+.tab {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
 .tab.active {
     color: #333;
 }
+
 .badge {
-    background: #eaf2ff;
-    color: #007bff;
-    font-size: 13px;
-    padding: 2px 8px;
+    background: #e8eff7;
+    color: #2c5aa0;
+    font-size: 14px;
+    padding: 4px 10px;
     border-radius: 12px;
-    margin-left: 5px;
+    margin-left: 8px;
+    font-weight: 500;
 }
 
-/* Filtros */
+/* TÍTULO DE FILTROS */
+.filters-title {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+/* FILTROS */
 .filters {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 15px;
     margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
 }
+
 .filter-item label {
     font-size: 13px;
-    color: #666;
+    color: #495057;
     display: block;
     margin-bottom: 5px;
+    font-weight: 500;
 }
+
 .filter-item input,
 .filter-item select {
     width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
     font-size: 14px;
+    background: #fff;
+    transition: border-color 0.15s ease-in-out;
 }
 
-/* Tabla */
+.filter-item input:focus,
+.filter-item select:focus {
+    border-color: #2c5aa0;
+    outline: 0;
+    box-shadow: 0 0 0 2px rgba(44, 90, 160, 0.1);
+}
+
+/* TABLA */
 .table-container {
     overflow-x: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
 }
+
 .solicitudes-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
     table-layout: fixed;
 }
+
 .solicitudes-table th {
     text-align: left;
-    padding: 12px;
-    color: #555;
+    padding: 12px 15px;
+    color: #495057;
     font-weight: 600;
-    background: #f9f9f9;
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+    font-size: 14px;
 }
+
 .solicitudes-table td {
-    padding: 12px;
-    border-top: 1px solid #eee;
+    padding: 12px 15px;
+    border-bottom: 1px solid #e9ecef;
     vertical-align: middle;
-}
-.solicitudes-table td strong {
     color: #333;
 }
+
+.solicitudes-table td strong {
+    color: #333;
+    font-weight: 600;
+}
+
 .solicitudes-table .dni {
-    font-size: 13px;
-    color: #666;
+    font-size: 12px;
+    color: #6c757d;
 }
 
-/* Estados */
-.estado {
-    padding: 5px 12px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 500;
-}
-.estado-proceso {
-    background: #e8f1ff;
-    color: #007bff;
-}
-.estado-observacion {
-    background: #fff7e6;
-    color: #b58900;
-}
-
-/* Botón detalles */
-.btn-detalles {
-    background: #f5f9ff;
-    color: #007bff;
-    padding: 6px 12px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-size: 13px;
-    border: 1px solid #cce0ff;
-}
-.btn-detalles:hover {
-    background: #e6f0ff;
-}
-
+/* CUERPO DE TABLA CON SCROLL */
 .table-body-scroll {
-    max-height: 330px; /* Ajusta la altura según el alto de 5 filas */
+    max-height: 400px;
     overflow-y: auto;
 }
 
-/* Opcional: scrollbar más bonito */
 .table-body-scroll::-webkit-scrollbar {
     width: 8px;
 }
+
 .table-body-scroll::-webkit-scrollbar-thumb {
     background-color: #c1c1c1;
     border-radius: 4px;
 }
 
+.table-body-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* ESTADOS */
+.estado {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-block;
+    min-width: 100px;
+    text-align: center;
+}
+
+.estado-proceso {
+    background: #e8f1ff;
+    color: #2c5aa0;
+    border: 1px solid #c5d7f2;
+}
+
+.estado-observacion {
+    background: #fff7e6;
+    color: #b58900;
+    border: 1px solid #ffd166;
+}
+
+/* BOTÓN DETALLES */
+.btn-detalles {
+    background: #2c5aa0;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
+    transition: background-color 0.2s;
+}
+
+.btn-detalles:hover {
+    background: #1e3d6f;
+    color: #fff;
+    text-decoration: none;
+}
+
+/* ESTADOS PARA LA SEGUNDA TABLA */
 .badge-color {
     display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
     font-weight: 600;
     text-align: center;
     min-width: 90px;
@@ -431,17 +573,66 @@ function filtrarTabla() {
 .badge-color.verde {
     background-color: #d4edda;
     color: #155724;
+    border: 1px solid #c3e6cb;
 }
 
 .badge-color.morado {
     background-color: #e0d4f7;
     color: #5b2fa0;
+    border: 1px solid #d1c1f0;
 }
 
 .badge-color.rojo {
     background-color: #f8d7da;
     color: #721c24;
+    border: 1px solid #f1b0b7;
 }
 
+/* ESTILOS PARA EL TEXTO CENTRADO */
+.text-center {
+    text-align: center;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+.py-3 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    padding: 10px;
+    font-weight: 500;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    padding: 10px;
+    font-weight: 500;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+    border-color: #1e7e34;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+.d-grid.gap-2 {
+    gap: 10px !important;
+}
+
+/* RESPONSIVE */
 
 </style>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="~/css/Modal.css" asp-append-version="true">
