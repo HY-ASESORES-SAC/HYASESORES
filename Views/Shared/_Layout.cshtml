@@ -51,6 +51,7 @@
                                         <li><a class="dropdown-item" asp-controller="Historial" asp-action="Index">Historial de Descansos</a></li>
                                     </ul>
                                 </li>
+                                <li><a class="dropdown-item" asp-controller="Calendario" asp-action="Index">Calendario</a></li>
 
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle text-dark" href="#" id="monitoreoDropdown" role="button" data-bs-toggle="dropdown">
@@ -95,6 +96,8 @@
                                         Opciones
                                     </a>
                                     <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Lista" asp-action="MisSolicitudes">Mis Solicitudes</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Lista" asp-action="MiSeguimiento">Seguimiento</a></li>
                                         <li><a class="dropdown-item" asp-controller="SistemaSolicitud" asp-action="Index">Solicitudes</a></li>
 
                                         @if (rol == "Trabajador")

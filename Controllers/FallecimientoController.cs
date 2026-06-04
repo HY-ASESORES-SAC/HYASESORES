@@ -32,7 +32,18 @@ namespace proyectoIngSoft.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Registrar(Fallecimiento model)
         {
-            if (ModelState.IsValid)
+            // Debug: Log all form values
+            _logger.LogInformation("=== INICIO REGISTRO FALLECIMIENTO ===");
+            _logger.LogInformation("NombreFallec: {NombreFallec}", model.NombreFallec);
+            _logger.LogInformation("Parentesco: {Parentesco}", model.Parentesco);
+            _logger.LogInformation("FechaIni: {FechaIni}", model.FechaIni);
+            _logger.LogInformation("FechaFin: {FechaFin}", model.FechaFin);
+            _logger.LogInformation("FechaComun: {FechaComun}", model.FechaComun);
+            _logger.LogInformation("LugarSep: {LugarSep}", model.LugarSep);
+            _logger.LogInformation("Traslado: {Traslado}", model.Traslado);
+            _logger.LogInformation("ModelState.IsValid: {IsValid}", ModelState.IsValid);
+            
+            if (!ModelState.IsValid)
             {
                 try
                 {
@@ -60,21 +71,44 @@ namespace proyectoIngSoft.Controllers
                         FallecimientoId = model.IdFallec
                     };
 
-                    _context.DbSetDescanso.Add(descanso);
-                    _context.SaveChanges();
+                _context.DbSetDescanso.Add(descanso);
+                _context.SaveChanges();
 
                     ViewData["Message"] = "Fallecimiento registrado con éxito";
                     return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error al registrar el descanso.");
-                    ViewData["Message"] = "Error al registrar el descanso: " + ex.Message;
+                    foreach (var archivo in archivos)
+                    {
+                        if (archivo.Length > 0)
+                        {
+                            using (var stream = new MemoryStream())
+                            {
+                                archivo.CopyTo(stream);
+                                var doc = new DocumentoMedico
+                                {
+                                    Nombre = archivo.FileName,
+                                    Tamaño = archivo.Length,
+                                    FechaSubida = DateTime.UtcNow,
+                                    Archivo = stream.ToArray(),
+                                    DescansoId = descanso.IdDescanso
+                                };
+                                _context.DocumentosMedicos.Add(doc);
+                            }
+                        }
+                    }
+                    _context.SaveChanges();
                 }
+
+                _logger.LogInformation("Fallecimiento registrado exitosamente con {Count} archivos. Descanso ID: {DescansoId}", archivos?.Count ?? 0, descanso.IdDescanso);
+                return RedirectToAction("Index", "ValidarDatos");
             }
-            else
+            catch (Exception ex)
             {
-                ViewData["Message"] = "Datos de entrada no válidos";
+                _logger.LogError(ex, "Error al registrar fallecimiento");
+                ViewData["Message"] = "Error al registrar: " + ex.Message;
+                return View("Index", model);
             }
             return View("Index");
         }

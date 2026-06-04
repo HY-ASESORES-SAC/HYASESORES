@@ -1,0 +1,255 @@
+@using proyectoIngSoft.Models.proyectoIngSoft.Models
+@model List<MisSolicitudesViewModel>
+
+@{
+    ViewData["Title"] = "Mis Solicitudes de Descansos Médicos y Subsidios";
+    var estadosColores = new Dictionary<string, string>
+    {
+        { "Aprobado", "success" },
+        { "Rechazado", "danger" },
+        { "En Proceso", "warning" },
+        { "En Observación", "info" },
+        { "Rechazado por PSA", "danger" },
+        { "Rechazado por Jefe", "danger" },
+        { "En Proceso (PSA)", "warning" },
+        { "En Proceso (Jefe)", "warning" }
+    };
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-file-medical me-2"></i>
+                        Mis Solicitudes de Descansos Médicos y Subsidios
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Filtros -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="text-muted">Todos los estados</h5>
+                                <span class="badge bg-secondary">Total: @ViewBag.TotalSolicitudes</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de solicitudes -->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped" id="tablaSolicitudes">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tipo</th>
+                                    <th>Motivo</th>
+                                    <th>Fecha Envío</th>
+                                    <th>Estado</th>
+                                    <th>Proceso Actual</th>
+                                    <th>Detalles Proceso</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var solicitud in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <strong>@solicitud.IdUnico</strong>
+                                        </td>
+                                        <td>
+                                            @if (solicitud.Tipo == "Descanso Médico")
+                                            {
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-bed me-1"></i>@solicitud.Tipo
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark">
+                                                    <i class="fas fa-money-bill-wave me-1"></i>@solicitud.Tipo
+                                                </span>
+                                            }
+                                        </td>
+                                        <td>@solicitud.Motivo</td>
+                                        <td>
+                                            <i class="far fa-calendar me-1"></i>
+                                            @solicitud.FechaEnvio.ToString("dd/MM/yyyy")
+                                        </td>
+                                        <td>
+                                            @{
+                                                var colorEstado = estadosColores.ContainsKey(solicitud.Estado) 
+                                                    ? estadosColores[solicitud.Estado] 
+                                                    : "secondary";
+                                            }
+                                            <span class="badge bg-@colorEstado">
+                                                @solicitud.Estado
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                <i class="fas fa-tasks me-1"></i>
+                                                @solicitud.ProcesoActual
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <small>
+                                                @if (solicitud.Tipo == "Subsidio")
+                                                {
+                                                    <div><strong>PSA:</strong> 
+                                                        <span class="@GetColorForEstado(solicitud.EstadoPSA)">@solicitud.EstadoPSA</span>
+                                                    </div>
+                                                    <div><strong>Jefe:</strong> 
+                                                        <span class="@GetColorForEstado(solicitud.EstadoJefe)">@solicitud.EstadoJefe</span>
+                                                    </div>
+                                                    <div><strong>ESSALUD:</strong> 
+                                                        <span class="@GetColorForEstado(solicitud.EstadoESSALUD)">@solicitud.EstadoESSALUD</span>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div><strong>Asistente:</strong> 
+                                                        <span class="@GetColorForEstado(solicitud.EstadoAsistente)">@solicitud.EstadoAsistente</span>
+                                                    </div>
+                                                    <div><strong>ESSALUD:</strong> 
+                                                        <span class="@GetColorForEstado(solicitud.EstadoESSALUD)">@solicitud.EstadoESSALUD</span>
+                                                    </div>
+                                                    <div><strong>Jefe:</strong> 
+                                                        <span class="@GetColorForEstado(solicitud.EstadoJefe)">@solicitud.EstadoJefe</span>
+                                                    </div>
+                                                }
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="verDetalle(@solicitud.IdDescanso)"
+                                                    title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            @if (solicitud.Estado == "En Observación")
+                                            {
+                                                <button class="btn btn-sm btn-outline-warning" 
+                                                        onclick="verObservaciones(@solicitud.IdDescanso)"
+                                                        title="Ver observaciones">
+                                                    <i class="fas fa-exclamation-circle"></i>
+                                                </button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+
+                                @if (!Model.Any())
+                                {
+                                    <tr>
+                                        <td colspan="8" class="text-center py-4">
+                                            <div class="text-muted">
+                                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                                <h5>No tienes solicitudes registradas</h5>
+                                                <p>Cuando envíes solicitudes de descansos médicos o subsidios, aparecerán aquí.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Información adicional -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-info-circle me-2"></i>Flujo de aprobación
+                                </h6>
+                                <p class="mb-2"><strong>Descansos Médicos:</strong> Asistente → ESSALUD → Jefa de Bienestar</p>
+                                <p class="mb-0"><strong>Subsidios:</strong> PSA → Jefa de Bienestar → ESSALUD</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetColorForEstado(string estado)
+    {
+        return estado switch
+        {
+            "Aprobado" or "Subsidio" or "Aceptado" => "text-success fw-bold",
+            "Rechazado" or "No válido" => "text-danger fw-bold",
+            "En Proceso" or "Revisando" or "Pendiente" => "text-warning fw-bold",
+            "En Observación" or "Observado" => "text-info fw-bold",
+            _ => "text-muted"
+        };
+    }
+}
+
+<!-- Modal para detalles -->
+<div class="modal fade" id="modalDetalle" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Detalles de la Solicitud</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="contenidoDetalle">
+                <!-- Contenido cargado via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function verDetalle(descansoId) {
+            $.get('@Url.Action("DetalleDescanso", "Lista")', { descansoId: descansoId })
+                .done(function(data) {
+                    $('#contenidoDetalle').html(data);
+                    $('#modalDetalle').modal('show');
+                })
+                .fail(function() {
+                    alert('Error al cargar los detalles');
+                });
+        }
+
+        function verObservaciones(descansoId) {
+            // Aquí puedes implementar la lógica para ver observaciones específicas
+            alert('Funcionalidad para ver observaciones en desarrollo para la solicitud: ' + descansoId);
+        }
+
+        // Inicializar tooltips
+        $(document).ready(function() {
+            $('[title]').tooltip();
+        });
+    </script>
+}
+
+<style>
+    .table th {
+        border-top: none;
+        font-weight: 600;
+        color: #495057;
+        background-color: #f8f9fa;
+    }
+    
+    .badge {
+        font-size: 0.75em;
+    }
+    
+    .card {
+        border: none;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    }
+    
+    .card-header {
+        border-bottom: 1px solid #e3e6f0;
+    }
+    
+    .table td small {
+        font-size: 0.8rem;
+    }
+</style>

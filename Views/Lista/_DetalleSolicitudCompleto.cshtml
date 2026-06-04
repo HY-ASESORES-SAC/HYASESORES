@@ -1,0 +1,147 @@
+@model proyectoIngSoft.Models.DetalleSolicitudCompletoViewModel
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Columna Izquierda - Información Principal -->
+        <div class="col-md-8">
+            <!-- Información Básica -->
+            <div class="mb-4">
+                <h6 class="text-muted mb-3">Información de la Solicitud</h6>
+                <div class="row">
+                    <div class="col-4">
+                        <strong>Empleado</strong>
+                        <p class="mb-1"><strong>@Model.Descanso.User.Username @Model.Descanso.User.Apellidos</strong></p>
+                    </div>
+                    <div class="col-4">
+                        <strong>DNI</strong>
+                        <p class="mb-1"><strong>@Model.Descanso.User.Dni</strong></p>
+                    </div>
+                    <div class="col-4">
+                        <strong>Fecha Solicitud</strong>
+                        <p class="mb-1"><strong>@Model.Descanso.FechaSolicitud.ToString("dd/MM/yyyy")</strong></p>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-4">
+                        <strong>Fecha Inicio</strong>
+                        <p class="mb-1"><strong>@Model.Descanso.FechaIni.ToString("dd/MM/yyyy")</strong></p>
+                    </div>
+                    <div class="col-4">
+                        <strong>Fecha Fin</strong>
+                        <p class="mb-1"><strong>@Model.Descanso.FechaFin.ToString("dd/MM/yyyy")</strong></p>
+                    </div>
+                    <div class="col-4">
+                        <strong>Días Totales</strong>
+                        <p class="mb-1"><strong>@((Model.Descanso.FechaFin - Model.Descanso.FechaIni).TotalDays) días</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Laboral -->
+            <div class="mb-4">
+                <h6 class="text-muted mb-3">Información Laboral</h6>
+                <div class="row">
+                    <div class="col-4">
+                        <strong>Puesto de trabajo</strong>
+                        <p class="mb-1"><strong>@(Model.Descanso.User.CargoLaboral ?? "Pafilero")</strong></p>
+                    </div>
+                    <div class="col-4">
+                        <strong>Sede</strong>
+                        <p class="mb-1"><strong>@(Model.Descanso.User.Distrito ?? "Sede Piura - Centro")</strong></p>
+                    </div>
+                    <div class="col-4">
+                        <strong>Ubicación</strong>
+                        <p class="mb-1"><strong>@(Model.Descanso.User.Ubigeo ?? "Piura - Piura")</strong></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documentos -->
+            <div class="mb-4">
+                <h6 class="text-muted mb-3">Documentos</h6>
+                <div class="list-group">
+                    @if (Model.Descanso.DocumentosMedicos != null && Model.Descanso.DocumentosMedicos.Any())
+                    {
+                        foreach (var documento in Model.Descanso.DocumentosMedicos)
+                        {
+                            <div class="documento-item d-flex justify-content-between align-items-center p-2 border rounded mb-2">
+                                <span>@documento.Nombre</span>
+                                <a href="@Url.Action("VerDocumento", "Lista", new { id = documento.IdDocumento })" 
+                                   target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Ver
+                                </a>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No hay documentos adjuntos</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Derecha - Historial de Procesos ACTUALIZADO -->
+        <div class="col-md-4">
+            <h6 class="text-muted mb-3">Historial de Procesos</h6>
+            <div class="historial-proceso">
+                @foreach (var proceso in Model.HistorialProcesos)
+                {
+                    <div class="historial-item @(proceso.Completado ? "completado" : "") mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong class="d-block">@proceso.Etapa</strong>
+                                <small class="text-muted">@proceso.Fecha.ToString("dd MMMM yyyy")</small>
+                            </div>
+                            @if (proceso.Completado)
+                            {
+                                <span class="badge bg-success ms-2">Completado</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary ms-2">Pendiente</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .historial-proceso {
+        border-left: 3px solid #007bff;
+        padding-left: 1rem;
+        margin-left: 0.5rem;
+    }
+
+    .historial-item {
+        position: relative;
+        padding-left: 1rem;
+    }
+
+    .historial-item::before {
+        content: '';
+        position: absolute;
+        left: -0.65rem;
+        top: 0.5rem;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #007bff;
+        border: 2px solid white;
+    }
+
+    .historial-item.completado::before {
+        background-color: #28a745;
+    }
+
+    .documento-item {
+        transition: all 0.2s ease;
+    }
+
+    .documento-item:hover {
+        background-color: #f8f9fa;
+    }
+</style>

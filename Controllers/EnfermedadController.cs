@@ -35,8 +35,12 @@ namespace proyectoIngSoft.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewData["Message"] = "Datos no válidos";
-                return View("Index");
+                var errors = string.Join("; ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage));
+                _logger.LogWarning("ModelState inválido en Enfermedad: {Errors}", errors);
+                ViewData["Message"] = "Datos no válidos: " + errors;
+                return View("Index", model);
             }
 
             try
@@ -75,9 +79,8 @@ namespace proyectoIngSoft.Controllers
             {
                 _logger.LogError(ex, "Error al registrar Enfermedad");
                 ViewData["Message"] = "Error al registrar: " + ex.Message;
+                return View("Index", model);
             }
-
-            return View("Index");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

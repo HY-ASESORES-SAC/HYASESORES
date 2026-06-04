@@ -24,7 +24,14 @@
     </div>
 </div>
 
-    <form method="post" asp-action="Registrar" class="solicitud-form">
+    @if (ViewData["Message"] != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            @ViewData["Message"]
+        </div>
+    }
+
+    <form method="post" asp-action="Registrar" enctype="multipart/form-data" class="solicitud-form">
 
         <!-- Fila 1 -->
         <div class="form-row">
@@ -90,40 +97,76 @@
                 <span asp-validation-for="Traslado" class="text-danger"></span>
             </div>
         </div>
-    <div class="documentos-section">
-            <h4>Documentos Finales</h4>
+
+        <!-- Documentos -->
+        <div class="documentos-section">
+            <h4>Documentos Requeridos</h4>
             <div class="form-row">
                 <div class="upload-box">
-                    <label>Partida de Defunción</label>
-                    <div class="upload-area">
-                        
-                        <input type="file" name="archivo" class="form-control" />
-                        <p>Subir partida<br><span>PDF, JPG, PNG</span></p>
+                    <label>Partida de Defunción *</label>
+                    <div class="upload-area" onclick="this.querySelector('input[type=file]').click()">
+                        <input type="file" name="archivos" class="file-input" accept=".pdf,.jpg,.jpeg,.png" required onchange="updateFileName(this)" />
+                        <div class="upload-icon">⬆️</div>
+                        <p class="upload-text">Haz clic para seleccionar<br><span>PDF, JPG, PNG</span></p>
+                        <p class="file-name" style="display:none; margin-top:10px; color:#059669; font-weight:600;"></p>
                     </div>
                 </div>
 
                 <div class="upload-box">
-                    <label>DNI del Fallecido</label>
-                    <div class="upload-area">
-                        
-                        <input type="file" name="archivo" class="form-control" />
-                        <p>Subir DNI<br><span>PDF, JPG, PNG</span></p>
+                    <label>DNI del Fallecido *</label>
+                    <div class="upload-area" onclick="this.querySelector('input[type=file]').click()">
+                        <input type="file" name="archivos" class="file-input" accept=".pdf,.jpg,.jpeg,.png" required onchange="updateFileName(this)" />
+                        <div class="upload-icon">⬆️</div>
+                        <p class="upload-text">Haz clic para seleccionar<br><span>PDF, JPG, PNG</span></p>
+                        <p class="file-name" style="display:none; margin-top:10px; color:#059669; font-weight:600;"></p>
                     </div>
                 </div>
             </div>
         </div>
-    <br />
+
    <div class="form-actions">
             <button type="submit" class="btn-submit">Registrar Solicitud</button>
     </div>
 </form>
-<script>
-    document.getElementById("tipoSolicitud").addEventListener("change", function () {
-        if (this.value) {
-            window.location.href = this.value;
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById("tipoSolicitud").addEventListener("change", function () {
+            if (this.value) {
+                window.location.href = this.value;
+            }
+        });
+        
+        // Debug: Log form submission
+        document.querySelector('form').addEventListener('submit', function(e) {
+            console.log('Formulario enviado');
+            const formData = new FormData(this);
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
+        });
+        
+        // Función para mostrar el nombre del archivo seleccionado
+        window.updateFileName = function(input) {
+            const uploadArea = input.closest('.upload-area');
+            const fileNameDisplay = uploadArea.querySelector('.file-name');
+            const uploadText = uploadArea.querySelector('.upload-text');
+            const uploadIcon = uploadArea.querySelector('.upload-icon');
+            
+            if (input.files && input.files[0]) {
+                const fileName = input.files[0].name;
+                const fileSize = (input.files[0].size / 1024).toFixed(2) + ' KB';
+                
+                fileNameDisplay.textContent = '✅ ' + fileName + ' (' + fileSize + ')';
+                fileNameDisplay.style.display = 'block';
+                uploadText.style.display = 'none';
+                uploadIcon.textContent = '✅';
+                uploadArea.style.borderColor = '#059669';
+                uploadArea.style.backgroundColor = '#f0fdf4';
+            }
         }
-    });
-</script>
+    </script>
+}
 <style>
 .header-bar {
   display: flex;
@@ -304,6 +347,61 @@
 
 .btn-submit:hover {
     background: #000;
+}
+
+.documentos-section {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.documentos-section h4 {
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.upload-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.upload-area {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 25px;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    position: relative;
+    background: #fafafa;
+    transition: all 0.3s ease;
+}
+
+.upload-area:hover {
+    border-color: #999;
+    background: #f5f5f5;
+}
+
+.upload-area .file-input {
+    display: none;
+}
+
+.upload-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.upload-area p {
+    margin: 0;
+    pointer-events: none;
+}
+
+.upload-area span {
+    font-size: 12px;
+    color: #999;
 }
 </style>
 

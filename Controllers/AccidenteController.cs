@@ -35,7 +35,11 @@ namespace proyectoIngSoft.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewData["Message"] = "Datos no válidos";
+                var errors = string.Join("; ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage));
+                _logger.LogWarning("ModelState inválido en Accidente: {Errors}", errors);
+                ViewData["Message"] = "Datos no válidos: " + errors;
                 return View("Index", model);
             }
 
@@ -60,24 +64,22 @@ namespace proyectoIngSoft.Controllers
                     FechaSolicitud = DateTime.UtcNow,
                     FechaIni = DateTime.SpecifyKind(model.FechaIni.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
                     FechaFin = DateTime.SpecifyKind(model.FechaFin.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
-                    AccidenteId = model.IdAccidente     // FK al Accidente recién creado
+                    AccidenteId = model.IdAccidente,
+                    EstadoProcesado = "Pendiente"       // Inicializar EstadoProcesado
                 };
 
                 _context.DbSetDescanso.Add(descanso);
                 _context.SaveChanges();
 
-              
-
-        // Redirigir al módulo de Documentos
-                 return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
+                _logger.LogInformation("Accidente registrado exitosamente. Descanso ID: {DescansoId}", descanso.IdDescanso);
+                return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al registrar Accidente");
+                _logger.LogError(ex, "Error al registrar accidente");
                 ViewData["Message"] = "Error al registrar: " + ex.Message;
+                return View("Index", model);
             }
-
-            return View("Index");
         }
         
         

@@ -29,9 +29,9 @@ namespace proyectoIngSoft.Controllers
         }
         [HttpPost]
        
-        public IActionResult Registrar(EnfermedadFam model)
+        public IActionResult Registrar(EnfermedadFam model, List<IFormFile> archivos)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 try
                 {
@@ -58,25 +58,43 @@ namespace proyectoIngSoft.Controllers
                         EnfermedadFamId = model.IdEnfermedadFam
                     };
 
-                    _context.DbSetDescanso.Add(descanso);
-                    _context.SaveChanges();
+                _context.DbSetDescanso.Add(descanso);
+                _context.SaveChanges();
 
-                    ViewData["Message"] = "Accidente registrado con éxito";
-                    return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
-            }
-                catch (Exception ex)
+                // 4. Guardar archivos adjuntos
+                if (archivos != null && archivos.Any())
                 {
-                    _logger.LogError(ex, "Error al registrar el descanso.");
-                    ViewData["Message"] = "Error al registrar el descanso: " + ex.Message;
+                    foreach (var archivo in archivos)
+                    {
+                        if (archivo.Length > 0)
+                        {
+                            using (var stream = new MemoryStream())
+                            {
+                                archivo.CopyTo(stream);
+                                var doc = new DocumentoMedico
+                                {
+                                    Nombre = archivo.FileName,
+                                    Tamaño = archivo.Length,
+                                    FechaSubida = DateTime.UtcNow,
+                                    Archivo = stream.ToArray(),
+                                    DescansoId = descanso.IdDescanso
+                                };
+                                _context.DocumentosMedicos.Add(doc);
+                            }
+                        }
+                    }
+                    _context.SaveChanges();
                 }
-            }
-            else
-            {
-                ViewData["Message"] = "Datos de entrada no válidos";
-            }
-            return View("Index");
-            
 
+                _logger.LogInformation("EnfermedadFam registrada exitosamente con {Count} archivos. Descanso ID: {DescansoId}", archivos?.Count ?? 0, descanso.IdDescanso);
+                return RedirectToAction("Index", "ValidarDatos");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al registrar enfermedad familiar");
+                ViewData["Message"] = "Error al registrar: " + ex.Message;
+                return View("Index", model);
+            }
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

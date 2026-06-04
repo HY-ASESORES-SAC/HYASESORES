@@ -31,7 +31,7 @@ namespace proyectoIngSoft.Controllers
        
         public IActionResult Registrar(Maternidad model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
                 try
                 {
@@ -58,26 +58,18 @@ namespace proyectoIngSoft.Controllers
                         MaternidadId = model.IdMater
                     };
 
-                    _context.DbSetDescanso.Add(descanso);
-                    _context.SaveChanges();
+                _context.DbSetDescanso.Add(descanso);
+                _context.SaveChanges();
 
-                    ViewData["Message"] = "Accidente registrado con éxito";
-                    
-                    return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error al registrar el descanso.");
-                    ViewData["Message"] = "Error al registrar el descanso: " + ex.Message;
-                }
+                _logger.LogInformation("Maternidad registrada exitosamente. Descanso ID: {DescansoId}", descanso.IdDescanso);
+                return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
             }
-            else
+            catch (Exception ex)
             {
-                ViewData["Message"] = "Datos de entrada no válidos";
+                _logger.LogError(ex, "Error al registrar maternidad");
+                ViewData["Message"] = "Error al registrar: " + ex.Message;
+                return View("Index", model);
             }
-            return View("Index");
-            
-
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -38,6 +38,14 @@ namespace proyectoIngSoft.Data
                 .Property(u => u.FechaNacimiento)
                 .HasColumnType("timestamp without time zone");
 
+            modelBuilder.Entity<CalendarioEvento>()
+                .Property(c => c.FechaInicio)
+                .HasColumnType("timestamp without time zone");
+                
+            modelBuilder.Entity<CalendarioEvento>()
+                .Property(c => c.FechaFin)
+                .HasColumnType("timestamp without time zone");
+
             modelBuilder.Entity<TipoDescanso>().HasData(
                 new TipoDescanso { IdTDescanso = 1, Nombre = "Enfermedad" },
                 new TipoDescanso { IdTDescanso = 2, Nombre = "Maternidad" },
