@@ -398,235 +398,61 @@ namespace proyectoIngSoft.Controllers
 
             return Json(new { success = true });
         }
-        // ============================
-        // SUPERVISIÓN Y VALIDACIÓN
-        // ============================
-        public IActionResult SupervisionSubsidios()
+// ============================
+// SUPERVISIÓN Y VALIDACIÓN
+// ============================
+public IActionResult SupervisionSubsidios()
+{
+    var descansos = _context.DbSetDescanso
+        .Include(d => d.User)
+        .Include(d => d.TipoDescanso)
+        .Where(d => d.EstadoSubsidioA == "Subsidio" &&
+                    (d.EstadoSubsidioJ == "Aprobado" || d.EstadoSubsidioJ == "Rechazado"))
+        .Select(d => new SupervisionSubsidioViewModel
         {
-            var descansos = _context.DbSetDescanso
-                .Include(d => d.User)
-                .Include(d => d.TipoDescanso)
-                .Where(d => d.EstadoSubsidioA == "Subsidio" &&
-                            (d.EstadoSubsidioJ == "Aprobado" || d.EstadoSubsidioJ == "Rechazado"))
-                .Select(d => new SupervisionSubsidioViewModel
-                {
-                    IdDescanso = d.IdDescanso,
-                    Dni = d.User.Dni,
-                    Nombre = $"{d.User.Username} {d.User.Apellidos}",
-                    Motivo = d.TipoDescanso.Nombre,
-                    FechaIni = d.FechaIni,
-                    FechaFin = d.FechaFin,
-                    Dias = (d.FechaFin - d.FechaIni).TotalDays,
-                    EstadoSubsidioA = d.EstadoSubsidioA,
-                    EstadoSubsidioJ = d.EstadoSubsidioJ
-                })
-                .ToList();
+            IdDescanso = d.IdDescanso,
+            Dni = d.User.Dni,
+            Nombre = $"{d.User.Username} {d.User.Apellidos}",
+            Motivo = d.TipoDescanso.Nombre,
+            FechaIni = d.FechaIni,
+            FechaFin = d.FechaFin,
+            Dias = (d.FechaFin - d.FechaIni).TotalDays,
+            EstadoSubsidioA = d.EstadoSubsidioA,
+            EstadoSubsidioJ = d.EstadoSubsidioJ
+        })
+        .ToList();
 
-            return View("SupervisionSubsidios", descansos);
-        }
+    return View("SupervisionSubsidios", descansos);
+}
 
 
-        [HttpPost]
-        public IActionResult EnviarSeleccionados([FromBody] List<int> idsSeleccionados)
+[HttpPost]
+public IActionResult EnviarSeleccionados([FromBody] List<int> idsSeleccionados)
+{
+    if (idsSeleccionados == null || !idsSeleccionados.Any())
+        return BadRequest("No se seleccionaron registros.");
+
+    var seleccionados = _context.DbSetDescanso
+        .Include(d => d.User)
+        .Include(d => d.TipoDescanso)
+        .Where(d => idsSeleccionados.Contains(d.IdDescanso))
+        .Select(d => new TrabajadorSeleccionadoViewModel
         {
-            if (idsSeleccionados == null || !idsSeleccionados.Any())
-                return BadRequest("No se seleccionaron registros.");
+            IdDescanso = d.IdDescanso,
+            Dni = d.User.Dni,
+            Nombre = $"{d.User.Username} {d.User.Apellidos}",
+            Motivo = d.TipoDescanso.Nombre,
+            FechaIni = d.FechaIni,
+            FechaFin = d.FechaFin,
+            Dias = (d.FechaFin - d.FechaIni).TotalDays,
+            EstadoSubsidioA = d.EstadoSubsidioA,
+            EstadoSubsidioJ = d.EstadoSubsidioJ
+        })
+        .ToList();
 
-            var seleccionados = _context.DbSetDescanso
-                .Include(d => d.User)
-                .Include(d => d.TipoDescanso)
-                .Where(d => idsSeleccionados.Contains(d.IdDescanso))
-                .Select(d => new TrabajadorSeleccionadoViewModel
-                {
-                    IdDescanso = d.IdDescanso,
-                    Dni = d.User.Dni,
-                    Nombre = $"{d.User.Username} {d.User.Apellidos}",
-                    Motivo = d.TipoDescanso.Nombre,
-                    FechaIni = d.FechaIni,
-                    FechaFin = d.FechaFin,
-                    Dias = (d.FechaFin - d.FechaIni).TotalDays,
-                    EstadoSubsidioA = d.EstadoSubsidioA,
-                    EstadoSubsidioJ = d.EstadoSubsidioJ
-                })
-                .ToList();
-
-            TempData["Seleccionados"] = System.Text.Json.JsonSerializer.Serialize(seleccionados);
-            return Ok();
-        }
-
-
-
-
-
-
-        public IActionResult ReporteMensual(int? año)
-        {
-            año ??= DateTime.Now.Year;
-            
-            var reporte = GenerarReporteMensual(año.Value);
-            
-            ViewBag.AñoSeleccionado = año.Value;
-            ViewBag.AñosDisponibles = Enumerable.Range(DateTime.Now.Year - 5, 10).ToList(); // Últimos 5 años y próximos 5
-            
-            return View("ReporteMensual", reporte);
-        }
-
-        private List<ReporteMensualViewModel> GenerarReporteMensual(int año)
-        {
-            var reporte = new List<ReporteMensualViewModel>();
-
-            // Obtener todos los datos del año en una sola consulta
-            var datosAño = _context.DbSetDescanso
-                .Include(d => d.User)
-                .Include(d => d.TipoDescanso)
-                .AsEnumerable()
-                .Where(d => d.FechaSolicitud.Year == año)
-                .ToList();
-
-            for (int mes = 1; mes <= 12; mes++)
-            {
-                var datosMes = datosAño.Where(d => d.FechaSolicitud.Month == mes).ToList();
-
-                // SUBSIDIOS
-                var subsidios = datosMes.Where(d => d.EstadoSubsidioA == "Subsidio" || d.EstadoSubsidioA == "Rechazado").ToList();
-                var subsidiosAprobados = subsidios.Count(d => d.EstadoSubsidioA == "Subsidio");
-                var subsidiosRechazados = subsidios.Count(d => d.EstadoSubsidioA == "Rechazado");
-
-                // DESCANSO MÉDICOS
-                var descansosMedicos = datosMes.Where(d =>
-                    (!string.IsNullOrEmpty(d.EstadoProcesado) &&
-                    (d.EstadoProcesado == "Aceptado" || d.EstadoProcesado == "Rechazado"))
-                ).ToList();
-
-                var descansosAprobados = descansosMedicos.Count(d => d.EstadoProcesado == "Aceptado");
-                var descansosRechazados = descansosMedicos.Count(d => d.EstadoProcesado == "Rechazado");
-
-                // Calcular totales
-                var totalRevisados = subsidios.Count + descansosMedicos.Count;
-                var totalAprobados = subsidiosAprobados + descansosAprobados;
-                var totalRechazados = subsidiosRechazados + descansosRechazados;
-
-                // Solo agregar el mes si tiene datos
-                if (totalRevisados > 0)
-                {
-                    reporte.Add(new ReporteMensualViewModel
-                    {
-                        Año = año,
-                        Mes = mes,
-                        NombreMes = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(mes),
-                        TotalRevisados = totalRevisados,
-                        Subsidios = subsidios.Count,
-                        DescansosMedicos = descansosMedicos.Count,
-                        Aprobados = totalAprobados,
-                        Rechazados = totalRechazados
-                    });
-                }
-            }
-
-            // Ordenar por mes
-            return reporte.OrderBy(r => r.Mes).ToList();
-        }
-        
-
-
-        public IActionResult DetalleMes(int año, int mes)
-        {
-            var detalleMes = ObtenerDetalleMes(año, mes);
-            
-            if (detalleMes == null || !detalleMes.Solicitudes.Any())
-            {
-                return RedirectToAction("ReporteMensual", new { año });
-            }
-            
-            return View("DetalleMes", detalleMes);
-        }
-
-        private DetalleMesViewModel ObtenerDetalleMes(int año, int mes)
-        {
-            var nombreMes = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(mes);
-            var detalle = new DetalleMesViewModel
-            {
-                Año = año,
-                Mes = mes,
-                NombreMes = nombreMes
-            };
-
-            // Obtener SOLO las solicitudes REVISADAS del mes con todas las relaciones necesarias
-            var solicitudesMes = _context.DbSetDescanso
-                .Include(d => d.User)
-                .Include(d => d.TipoDescanso)
-                .Include(d => d.Accidente)
-                .Include(d => d.Enfermedad)
-                .Include(d => d.EnfermedadFam)
-                .Include(d => d.Fallecimiento)
-                .Include(d => d.Maternidad)
-                .Include(d => d.Paternidad)
-                .AsEnumerable()
-                .Where(d => d.FechaSolicitud.Year == año &&
-                           d.FechaSolicitud.Month == mes &&
-                           // Solo incluir registros REVISADOS
-                           ((d.EstadoSubsidioA == "Subsidio" || d.EstadoSubsidioA == "Rechazado") ||
-                            (d.EstadoProcesado == "Aceptado" || d.EstadoProcesado == "Rechazado")))
-                .ToList();
-
-            var random = new Random();
-
-            foreach (var solicitud in solicitudesMes)
-            {
-                // Determinar la categoría específica del descanso
-                string tipoEspecifico = ObtenerTipoEspecifico(solicitud);
-
-                // Determinar si es Subsidio o Descanso Médico para el estado
-                string categoria = (solicitud.EstadoSubsidioA == "Subsidio" || solicitud.EstadoSubsidioA == "Rechazado")
-                    ? "Subsidio"
-                    : "Descanso Médico";
-
-                // Generar ID único aleatorio (6 dígitos)
-                var idUnico = random.Next(100000, 999999).ToString();
-
-                detalle.Solicitudes.Add(new SolicitudDetalle
-                {
-                    IdUnico = idUnico,
-                    Empleado = $"{solicitud.User.Username} {solicitud.User.Apellidos}",
-                    Dni = solicitud.User.Dni,
-                    Tipo = tipoEspecifico, // Ahora será "Enfermedad", "Fallecimiento", etc.
-                 
-                    Estado = categoria == "Subsidio" ? solicitud.EstadoSubsidioA : solicitud.EstadoProcesado,
-                    FechaSolicitud = solicitud.FechaSolicitud,
-                    IdDescanso = solicitud.IdDescanso
-                });
-            }
-
-            // Ordenar por fecha de solicitud (más reciente primero)
-            detalle.Solicitudes = detalle.Solicitudes
-                .OrderByDescending(s => s.FechaSolicitud)
-                .ToList();
-
-            return detalle;
-        }
-
-        private string ObtenerTipoEspecifico(Descanso descanso)
-        {
-            // Verificar qué relación tiene datos para determinar el tipo específico
-            if (descanso.Accidente != null)
-                return "Accidente";
-            else if (descanso.Maternidad != null)
-                return "Maternidad";
-            else if (descanso.Paternidad != null)
-                return "Paternidad";
-            else if (descanso.Enfermedad != null)
-                return "Enfermedad";
-            else if (descanso.EnfermedadFam != null)
-                return "Enfermedad Familiar";
-            else if (descanso.Fallecimiento != null)
-                return "Fallecimiento";
-            else
-                return descanso.TipoDescanso?.Nombre ?? "No Especificado";
-        }
-    
-
-
-
+    TempData["Seleccionados"] = System.Text.Json.JsonSerializer.Serialize(seleccionados);
+    return Ok();
+}
         // ======================
         // MANEJO DE ERRORES
         // ======================

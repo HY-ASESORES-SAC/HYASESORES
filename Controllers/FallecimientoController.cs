@@ -41,6 +41,7 @@ namespace proyectoIngSoft.Controllers
                     if (user == null)
                     {
                         // No hay usuario autenticado
+                        ViewData["Message"] = "No hay usuario autenticado. Por favor inicie sesión.";
                         return RedirectToAction("Login", "Auth");
                     }
 
@@ -54,8 +55,8 @@ namespace proyectoIngSoft.Controllers
                         UserId = user.IdUser,               // FK a T_Usuarios
                         TipoDescansoId = 4,                 // 4 = Fallecimiento Familiar
                         FechaSolicitud = DateTime.UtcNow,
-                        FechaIni = ConvertToUtc(model.FechaIni),
-                        FechaFin = ConvertToUtc(model.FechaFin),
+                        FechaIni = DateTime.SpecifyKind(model.FechaIni.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+                        FechaFin = DateTime.SpecifyKind(model.FechaFin.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
                         FallecimientoId = model.IdFallec
                     };
 

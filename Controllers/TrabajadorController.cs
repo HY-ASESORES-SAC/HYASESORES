@@ -51,49 +51,6 @@ namespace proyectoIngSoft.Controllers
             return View(modelo);
         }
 
-
-        // GET: /Trabajadores/SolicitarInformacion
-        public async Task<IActionResult> SolicitarInformacion(string? filtro)
-        {
-            var query = _context.DbSetUser.AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(filtro))
-            {
-                filtro = filtro.Trim().ToLower();
-                query = query.Where(u =>
-                    u.Dni.ToLower().Contains(filtro) ||
-                    u.Username.ToLower().Contains(filtro));
-            }
-
-            var trabajadores = await query.ToListAsync();
-
-            // Devuelve la lista de entidades (Usuario) para la vista
-            return View(trabajadores);
-        }
-
-        
-
-        //modal
-        // GET: /Trabajadores/Detalle/5
-        public async Task<IActionResult> Detalle(int id)
-        {
-            var trabajador = await _context.DbSetUser.FirstOrDefaultAsync(u => u.IdUser == id);
-            if (trabajador == null)
-                return Content("<p class='text-danger text-center'>Trabajador no encontrado.</p>", "text/html");
-
-            // Partial view que contendrá el contenido del modal
-            return PartialView("_DetalleTrabajador", trabajador);
-        }
-
-        
-        // GET: /Trabajadores/InformacionAdicional/5
-        public async Task<IActionResult> InformacionAdicional(int id)
-        {
-            var trabajador = await _context.DbSetUser.FirstOrDefaultAsync(u => u.IdUser == id);
-            if (trabajador == null) return NotFound();
-            return View(trabajador);
-        }
-
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
