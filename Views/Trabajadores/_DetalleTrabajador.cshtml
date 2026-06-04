@@ -1,0 +1,32 @@
+@model proyectoIngSoft.Models.User
+
+<div class="row">
+    <div class="col-12">
+        <h5>Información completa del usuario: @Model.Username @Model.Apellidos</h5>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-6">
+        <p><strong>DNI:</strong> @Model.Dni</p>
+        <p><strong>Email:</strong> @Model.Email</p>
+        <p><strong>Teléfono:</strong> @Model.Telefono</p>
+    </div>
+    <div class="col-md-6">
+        <p><strong>Ubigeo:</strong> @Model.Ubigeo</p>
+        <p><strong>Distrito:</strong> @Model.Distrito</p>
+        <p><strong>Cargo:</strong> @Model.CargoLaboral</p>
+    </div>
+</div>
+
+<hr />
+
+@* <div class="d-flex justify-content-end gap-2">
+    <a class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</a>
+
+   
+</div> *@
+ @* Link directo por si quieres que el modal contenga también un enlace *@
+    @* <a class="btn btn-primary" href="@Url.Action("InformacionAdicional", "Trabajadores", new { id = Model.IdUser })">
+        Ver Información Adicional
+    </a> *@

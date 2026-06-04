@@ -12,6 +12,7 @@ namespace proyectoIngSoft.Models
     public class User
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IdUser { get; set; }
 
         [NotNull]
@@ -50,7 +51,13 @@ namespace proyectoIngSoft.Models
         [Required]
         public string Distrito { get; set; }
 
-        public string? RazonSocial { get; set; }  // opcional
+        [Required, MaxLength(6)]
+        public string RazonSocial { get; set; }
+
+        [ForeignKey("CodigoSocial")]
+        public int? IdCodigo { get; set; }
+
+        public CodigoSocial? CodigoSocial { get; set; }
 
         public string? CargoLaboral { get; set; } // opcional
 
@@ -58,6 +65,10 @@ namespace proyectoIngSoft.Models
         [Required, DataType(DataType.Password), Compare("Password", ErrorMessage = "Las contraseñas no coinciden")]
         public string ConfirmarPassword { get; set; }
 
-        public string Rol { get; set; }
+        public string Rol { get; set; } = "Trabajador";
+
+        // 🔹 Propiedad calculada para mostrar el nombre completo
+        [NotMapped]
+        public string NombreCompleto => $"{Username} {Apellidos}";
     }
 }

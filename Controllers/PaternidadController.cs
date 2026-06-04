@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using proyectoIngSoft.Data;
 using proyectoIngSoft.Models;
+using proyectoIngSoft.Helpers;
 
 namespace proyectoIngSoft.Controllers
 {
@@ -24,64 +25,60 @@ namespace proyectoIngSoft.Controllers
 
         public IActionResult Index()
         {
-            var documentos = _context.DocumentosMedicos.ToList();
             return View();
         }
         [HttpPost]
        
         public IActionResult Registrar(Paternidad model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    // 1. Guardar Accidente
-                    _context.DbSetPaternidad.Add(model);
-                    _context.SaveChanges();
-
-                    // 2. Obtener usuario logueado (simulado)
-                    var username = HttpContext.Session.GetString("User");
-                    if (string.IsNullOrEmpty(username))
-                    {
-                        ViewData["Message"] = "No hay usuario logueado";
-                        return View("Index", model);
-                    }
-
-                    var user = _context.DbSetUser.FirstOrDefault(u => u.Username == username);
-                    if (user == null)
-                    {
-                        ViewData["Message"] = "Usuario no encontrado";
-                        return View("Index", model);
-                    }
-
-                    // 3. Crear Descanso
-                    var descanso = new Descanso
-                    {
-                        UserId = user.IdUser,               // FK a T_Usuarios
-                        TipoDescansoId = 3,                 // 1 = Accidente
-                        FechaSolicitud = DateTime.UtcNow,
-                        PaternidadId = model.IdPater    // FK al Accidente recién creado
-                    };
-
-                    _context.DbSetDescanso.Add(descanso);
-                    _context.SaveChanges();
-
-                    ViewData["Message"] = "Accidente registrado con éxito";
-                    return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error al registrar el descanso.");
-                    ViewData["Message"] = "Error al registrar el descanso: " + ex.Message;
-                }
+                var errors = string.Join("; ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage));
+                _logger.LogWarning("ModelState inválido en Paternidad: {Errors}", errors);
+                ViewData["Message"] = "Datos de entrada no válidos: " + errors;
+                return View("Index", model);
             }
-            else
+
+            try
             {
-                ViewData["Message"] = "Datos de entrada no válidos";
-            }
-            return View("Index");
-            
+                // 1. Obtener usuario actual
+                var user = UserHelper.GetCurrentUser(HttpContext, _context);
+                if (user == null)
+                {
+                    ViewData["Message"] = "No hay usuario autenticado. Por favor inicie sesión.";
+                    return RedirectToAction("Login", "Auth");
+                }
 
+                // 2. Guardar Paternidad
+                _context.DbSetPaternidad.Add(model);
+                _context.SaveChanges();
+
+                // 3. Crear Descanso
+                var descanso = new Descanso
+                {
+                    UserId = user.IdUser,               // FK a T_Usuarios
+                    TipoDescansoId = 3,                 // 3 = Paternidad
+                    FechaSolicitud = DateTime.UtcNow,
+                    FechaIni = DateTime.SpecifyKind(model.FechaIni.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+                    FechaFin = DateTime.SpecifyKind(model.FechaFin.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+                    PaternidadId = model.IdPater,
+                    EstadoProcesado = "Pendiente"       // Inicializar EstadoProcesado
+                };
+
+                _context.DbSetDescanso.Add(descanso);
+                _context.SaveChanges();
+
+                _logger.LogInformation("Paternidad registrada exitosamente. Descanso ID: {DescansoId}", descanso.IdDescanso);
+                return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al registrar paternidad");
+                ViewData["Message"] = "Error al registrar: " + ex.Message;
+                return View("Index", model);
+            }
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using proyectoIngSoft.Data;
 using proyectoIngSoft.Models;
+using proyectoIngSoft.Helpers;
 
 namespace proyectoIngSoft.Controllers
 {
@@ -23,7 +24,7 @@ namespace proyectoIngSoft.Controllers
 
         public IActionResult Index()
         {
-            var documentos = _context.DocumentosMedicos.ToList();
+    
             return View();
         }
 
@@ -33,54 +34,52 @@ namespace proyectoIngSoft.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewData["Message"] = "Datos no válidos";
-                return View("Index");
+                var errors = string.Join("; ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage));
+                _logger.LogWarning("ModelState inválido en Enfermedad: {Errors}", errors);
+                ViewData["Message"] = "Datos no válidos: " + errors;
+                return View("Index", model);
             }
 
             try
             {
-                // 1. Guardar Accidente
-                _context.DbSetEnfermedad.Add(model);
-                _context.SaveChanges();
-
-
-                // 2. Obtener usuario logueado (simulado)
-                var username = HttpContext.Session.GetString("User");
-                if (string.IsNullOrEmpty(username))
-                {
-                    ViewData["Message"] = "No hay usuario logueado";
-                    return View("Index", model);
-                }
-
-                var user = _context.DbSetUser.FirstOrDefault(u => u.Username == username);
+                // 1. Obtener usuario actual
+                var user = UserHelper.GetCurrentUser(HttpContext, _context);
                 if (user == null)
                 {
-                    ViewData["Message"] = "Usuario no encontrado";
-                    return View("Index", model);
+                    ViewData["Message"] = "No hay usuario autenticado. Por favor inicie sesión.";
+                    return RedirectToAction("Login", "Auth");
                 }
+
+                // 2. Guardar Enfermedad
+                _context.DbSetEnfermedad.Add(model);
+                _context.SaveChanges();
 
                 // 3. Crear Descanso
                 var descanso = new Descanso
                 {
                     UserId = user.IdUser,               // FK a T_Usuarios
-                    TipoDescansoId = 1,                 // 1 = Accidente
+                    TipoDescansoId = 1,                 // 1 = Enfermedad
                     FechaSolicitud = DateTime.UtcNow,
-                    EnfermedadId = model.IdEnfermedad   // FK al Accidente recién creado
+                    FechaIni = DateTime.SpecifyKind(model.FechaIni.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+                    FechaFin = DateTime.SpecifyKind(model.FechaFin.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+                    EnfermedadId = model.IdEnfermedad,
+                    EstadoProcesado = "Pendiente"       // Inicializar EstadoProcesado
                 };
 
                 _context.DbSetDescanso.Add(descanso);
                 _context.SaveChanges();
 
-                ViewData["Message"] = "Accidente registrado con éxito";
+                _logger.LogInformation("Enfermedad registrada exitosamente. Descanso ID: {DescansoId}", descanso.IdDescanso);
                 return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al registrar Accidente");
+                _logger.LogError(ex, "Error al registrar enfermedad");
                 ViewData["Message"] = "Error al registrar: " + ex.Message;
+                return View("Index", model);
             }
-
-            return View("Index");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

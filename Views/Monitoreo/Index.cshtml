@@ -1,0 +1,42 @@
+@model IEnumerable<proyectoIngSoft.Controllers.MonitoreoViewModel>
+
+@{
+    ViewData["Title"] = "Monitoreo de Subsidios";
+}
+
+<h2>Monitoreo de Subsidios</h2>
+
+<form method="get" action="/Monitoreo">
+    <input type="hidden" name="tipo" value="@ViewBag.Tipo" />
+    <input type="text" name="busqueda" value="@ViewBag.Busqueda" placeholder="Buscar trabajador..." />
+    <button type="submit" class="btn btn-primary">Buscar</button>
+</form>
+
+<table class="table table-striped mt-3">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Tipo Subsidio</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Días</th>
+            <th>Total (S/)</th>
+            <th>Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var t in Model)
+        {
+            <tr>
+                <td>@t.Nombre</td>
+                <td>@t.TipoSubsidio</td>
+                <td>@t.FechaInicio.ToString("dd/MM/yyyy")</td>
+                <td>@t.FechaFin.ToString("dd/MM/yyyy")</td>
+                <td>@t.Dias</td>
+                <td>@t.Total.ToString("F2")</td>
+                <td>@t.Estado</td>
+            </tr>
+        }
+    </tbody>
+</table>
+

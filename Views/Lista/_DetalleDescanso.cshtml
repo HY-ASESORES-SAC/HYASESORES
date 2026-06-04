@@ -82,21 +82,14 @@
         <!-- Mensaje para trabajador -->
         <div>
             <p class="label-title">Cambiar Estado de la Solicitud</p>
-            <label class="form-label">Mensaje para el trabajador</label>
-            <textarea class="form-control custom-textarea" rows="3"
-                      placeholder="Escriba el mensaje que se enviará al trabajador explicando la observación..."></textarea>
+            <form asp-action="EnviarObservacion" asp-controller="Lista" method="post">
+                <input type="hidden" name="descansoId" value="@Model.IdDescanso" />
+                <label class="form-label">Mensaje para el trabajador</label>
+                <textarea name="mensaje" class="form-control custom-textarea" rows="3"
+                          placeholder="Escriba el mensaje que se enviará al trabajador explicando la observación..."></textarea>
+                <button type="submit" class="btn btn-warning mt-3">Enviar Observación</button>
+            </form>
         </div>
-
-        <!-- Botón -->
-        <form asp-action="EnviarObservacion" asp-controller="Lista" method="post">
-        <input type="hidden" name="descansoId" value="@Model.IdDescanso" />
-         <label class="form-label">Mensaje para el trabajador</label>
-         <textarea name="mensaje" class="form-control custom-textarea" rows="3"
-              placeholder="Escriba el mensaje que se enviará al trabajador explicando la observación..."></textarea>
-
-        <br />
-         <button type="submit" class="btn btn-warning mt-2">Observación</button>
-        </form>
         
     </div>
 </div>

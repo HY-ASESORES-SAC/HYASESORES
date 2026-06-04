@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using proyectoIngSoft.Data;
 using proyectoIngSoft.Models;
+using proyectoIngSoft.Helpers;
 
 namespace proyectoIngSoft.Controllers
 {
@@ -25,8 +26,7 @@ namespace proyectoIngSoft.Controllers
         // GET: /Accidente/Index
         public IActionResult Index()
         {
-            var documentos = _context.DocumentosMedicos.ToList();
-
+           
             return View();
         }
 
@@ -35,55 +35,51 @@ namespace proyectoIngSoft.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewData["Message"] = "Datos no válidos";
+                var errors = string.Join("; ", ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage));
+                _logger.LogWarning("ModelState inválido en Accidente: {Errors}", errors);
+                ViewData["Message"] = "Datos no válidos: " + errors;
                 return View("Index", model);
             }
 
             try
             {
-                // 1. Guardar Accidente
-                _context.DbSetAccidente.Add(model);
-                _context.SaveChanges();
-
-                // 2. Obtener usuario logueado (simulado)
-                var username = HttpContext.Session.GetString("User");
-                if (string.IsNullOrEmpty(username))
-                {
-                    ViewData["Message"] = "No hay usuario logueado";
-                    return View("Index", model);
-                }
-
-                // 3. Buscar el usuario en la base de datos
-                var user = _context.DbSetUser.FirstOrDefault(u => u.Username == username);
+                // 1. Obtener usuario actual
+                var user = UserHelper.GetCurrentUser(HttpContext, _context);
                 if (user == null)
                 {
-                    ViewData["Message"] = "Usuario no encontrado";
-                    return View("Index", model);
+                    ViewData["Message"] = "No hay usuario autenticado. Por favor inicie sesión.";
+                    return RedirectToAction("Login", "Auth");
                 }
+
+                // 2. Guardar Accidente
+                _context.DbSetAccidente.Add(model);
+                _context.SaveChanges();
                 // 3. Crear Descanso
                 var descanso = new Descanso
                 {
                     UserId = user.IdUser,               // FK a T_Usuarios
-                    TipoDescansoId = 6,                 // 1 = Accidente
+                    TipoDescansoId = 6,                 // 6 = Accidente
                     FechaSolicitud = DateTime.UtcNow,
-                    AccidenteId = model.IdAccidente     // FK al Accidente recién creado
+                    FechaIni = DateTime.SpecifyKind(model.FechaIni.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+                    FechaFin = DateTime.SpecifyKind(model.FechaFin.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc),
+                    AccidenteId = model.IdAccidente,
+                    EstadoProcesado = "Pendiente"       // Inicializar EstadoProcesado
                 };
 
                 _context.DbSetDescanso.Add(descanso);
                 _context.SaveChanges();
 
-              
-
-        // Redirigir al módulo de Documentos
-                 return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
+                _logger.LogInformation("Accidente registrado exitosamente. Descanso ID: {DescansoId}", descanso.IdDescanso);
+                return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al registrar Accidente");
+                _logger.LogError(ex, "Error al registrar accidente");
                 ViewData["Message"] = "Error al registrar: " + ex.Message;
+                return View("Index", model);
             }
-
-            return View("Index");
         }
         
         

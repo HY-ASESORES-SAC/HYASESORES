@@ -1,0 +1,67 @@
+@model proyectoIngSoft.Models.Descanso
+
+@{
+    ViewData["Title"] = "Detalles del Subsidio";
+}
+
+<h2 class="mb-4">Detalles del Subsidio</h2>
+
+<div class="row g-3">
+    <!-- Información del trabajador -->
+    <div class="col-md-6">
+        <div class="card shadow-sm rounded-3">
+            <div class="card-header bg-primary text-white fw-bold">
+                Información del Trabajador
+            </div>
+            <div class="card-body">
+                <p><strong>Nombre:</strong> @Model.User.Username @Model.User.Apellidos</p>
+                <p><strong>DNI:</strong> @Model.User.Dni</p>
+                <p><strong>Email:</strong> @Model.User.Email</p>
+                <p><strong>Teléfono:</strong> @Model.User.Telefono</p>
+                <p><strong>Distrito:</strong> @Model.User.Distrito</p>
+                <p><strong>Cargo:</strong> @Model.User.CargoLaboral ?? "No definido"</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Información del descanso/subsidio -->
+    <div class="col-md-6">
+        <div class="card shadow-sm rounded-3">
+            <div class="card-header bg-success text-white fw-bold">
+                Información del Subsidio
+            </div>
+            <div class="card-body">
+                <p><strong>Tipo de Descanso:</strong> @Model.TipoDescanso.Nombre</p>
+                <p><strong>Estado Subsidio:</strong> @Model.EstadoSubsidioA</p>
+                <p><strong>Estado ESSALUD:</strong> @Model.EstadoESSALUD</p>
+                <p><strong>Fecha de Solicitud:</strong> @Model.FechaSolicitud.ToString("dd/MM/yyyy")</p>
+                <p><strong>Fecha Inicio:</strong> @Model.FechaIni.ToString("dd/MM/yyyy")</p>
+                <p><strong>Fecha Fin:</strong> @Model.FechaFin.ToString("dd/MM/yyyy")</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Documentos adjuntos -->
+@if (Model.DocumentosMedicos != null && Model.DocumentosMedicos.Any())
+{
+    <div class="card shadow-sm rounded-3 mt-3">
+        <div class="card-header bg-info text-white fw-bold">
+            Documentos Adjuntos
+        </div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                @foreach (var doc in Model.DocumentosMedicos)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>@doc.Nombre</span>
+                        <a class="btn btn-sm btn-outline-primary" asp-action="VerDocumento" asp-route-id="@doc.IdDocumento">Ver</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+<!-- Botón para volver -->
+<a class="btn btn-secondary mt-4" asp-action="Index">← Volver al Monitoreo</a>

@@ -1,0 +1,318 @@
+@model List<proyectoIngSoft.Models.MiSeguimientoViewModel>
+@{
+    ViewData["Title"] = "Mi Seguimiento";
+    var totalSolicitudes = ViewBag.TotalSolicitudes ?? 0;
+    var solicitudesActivas = ViewBag.SolicitudesActivas ?? 0;
+    var solicitudesFinalizadas = ViewBag.SolicitudesFinalizadas ?? 0;
+}
+
+<div class="container-fluid py-4">
+    <!-- Header y tarjetas de resumen (mantener igual) -->
+    <!-- ... código anterior ... -->
+
+    @if (Model != null && Model.Any())
+    {
+        <!-- Filtros (mantener igual) -->
+        <!-- ... código anterior ... -->
+
+        <!-- Grid de Seguimiento ACTUALIZADO -->
+        <div class="row" id="gridSeguimiento">
+            @foreach (var solicitud in Model)
+            {
+                <div class="col-lg-6 col-xl-4 mb-4 solicitud-item" 
+                     data-tipo="@solicitud.Tipo" 
+                     data-estado="@solicitud.EstadoGeneral">
+                    <div class="card h-100 shadow-sm border-0">
+                        <!-- Header de la Tarjeta -->
+                        <div class="card-header bg-white border-0 pb-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="fw-bold text-primary mb-1">Solicitud #@solicitud.IdUnico</h6>
+                                    <span class="badge @GetBadgeClass(solicitud.Tipo)">@solicitud.Tipo</span>
+                                </div>
+                                <span class="badge @GetEstadoBadgeClass(solicitud.EstadoGeneral)">@solicitud.EstadoGeneral</span>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <!-- Información Básica -->
+                            <div class="mb-3">
+                                <p class="mb-1"><strong>Motivo:</strong> @solicitud.Motivo</p>
+                                <p class="mb-1"><strong>Fecha Envío:</strong> @solicitud.FechaEnvio.ToString("dd/MM/yyyy")</p>
+                                <p class="mb-0"><strong>Días Totales:</strong> @solicitud.DiasTotales días</p>
+                            </div>
+
+                            <!-- Barra de Progreso -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <small class="text-muted">Progreso general</small>
+                                    <small class="text-muted">@solicitud.Progreso%</small>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar @GetProgressBarClass(solicitud.Progreso)" 
+                                         role="progressbar" 
+                                         style="width: @solicitud.Progreso%" 
+                                         aria-valuenow="@solicitud.Progreso" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <small class="text-muted">@solicitud.PasosCompletados de 6 pasos completados</small>
+                            </div>
+
+                            <!-- Timeline Visual ACTUALIZADO -->
+                            <div class="timeline-visual mb-3">
+                                @if (solicitud.Tipo == "Descanso Médico")
+                                {
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="timeline-step @(solicitud.PasosCompletados >= 1 ? "completed" : "")">
+                                            <div class="timeline-dot"></div>
+                                            <small>Solicitud</small>
+                                        </div>
+                                        <div class="timeline-step @(solicitud.PasosCompletados >= 2 ? "completed" : "")">
+                                            <div class="timeline-dot"></div>
+                                            <small>ESSALUD</small>
+                                        </div>
+                                        <div class="timeline-step @(solicitud.PasosCompletados >= 3 ? "completed" : "")">
+                                            <div class="timeline-dot"></div>
+                                            <small>Asistente</small>
+                                        </div>
+                                        <div class="timeline-step @(solicitud.PasosCompletados >= 4 ? "completed" : "")">
+                                            <div class="timeline-dot"></div>
+                                            <small>Jefa</small>
+                                        </div>
+                                        <div class="timeline-step @(solicitud.PasosCompletados >= 5 ? "completed" : "")">
+                                            <div class="timeline-dot"></div>
+                                            <small>Planilla</small>
+                                        </div>
+                                        <div class="timeline-step @(solicitud.PasosCompletados >= 6 ? "completed" : "")">
+                                            <div class="timeline-dot"></div>
+                                            <small>Subsidio</small>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="timeline-step @(solicitud.PasosCompletados >= 1 ? "completed" : "")">
+                                            <div class="timeline-dot"></div>
+                                            <small>Solicitud</small>
+                                        </div>
+                                        <div class="timeline-step @(solicitud.PasosCompletados >= 2 ? "completed" : "")">
+                                            <div class="timeline-dot"></div>
+                                            <small>PSA</small>
+                                        </div>
+                                        <div class="timeline-step @(solicitud.PasosCompletados >= 3 ? "completed" : "")">
+                                            <div class="timeline-dot"></div>
+                                            <small>ESSALUD</small>
+                                        </div>
+                                        <div class="timeline-step @(solicitud.PasosCompletados >= 4 ? "completed" : "")">
+                                            <div class="timeline-dot"></div>
+                                            <small>Jefa</small>
+                                        </div>
+                                        <div class="timeline-step @(solicitud.PasosCompletados >= 5 ? "completed" : "")">
+                                            <div class="timeline-dot"></div>
+                                            <small>Planilla</small>
+                                        </div>
+                                        <div class="timeline-step @(solicitud.PasosCompletados >= 6 ? "completed" : "")">
+                                            <div class="timeline-dot"></div>
+                                            <small>Subsidio</small>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Estados Detallados -->
+                            <div class="estados-detallados">
+                                <small class="text-muted d-block mb-1">Estados actuales:</small>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @if (solicitud.Tipo == "Descanso Médico")
+                                    {
+                                        <span class="badge @GetEstadoMiniBadge(solicitud.EstadoESSALUD)">ESSALUD: @solicitud.EstadoESSALUD</span>
+                                        <span class="badge @GetEstadoMiniBadge(solicitud.EstadoProcesado)">Asistente: @solicitud.EstadoProcesado</span>
+                                        <span class="badge @GetEstadoMiniBadge(solicitud.EstadoSubsidioJ)">Jefa: @solicitud.EstadoSubsidioJ</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge @GetEstadoMiniBadge(solicitud.EstadoSubsidioA)">PSA: @solicitud.EstadoSubsidioA</span>
+                                        <span class="badge @GetEstadoMiniBadge(solicitud.EstadoESSALUD)">ESSALUD: @solicitud.EstadoESSALUD</span>
+                                        <span class="badge @GetEstadoMiniBadge(solicitud.EstadoSubsidioJ)">Jefa: @solicitud.EstadoSubsidioJ</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Footer de la Tarjeta -->
+                        <div class="card-footer bg-white border-0 pt-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    @solicitud.FechaInicio.ToString("dd/MM/yyyy") - @solicitud.FechaFin.ToString("dd/MM/yyyy")
+                                </small>
+                                <button class="btn btn-sm btn-outline-primary" onclick="verDetalleSeguimiento(@solicitud.IdDescanso)">
+                                    <i class="bi bi-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Mensaje cuando no hay solicitudes (mantener igual) -->
+        <!-- ... código anterior ... -->
+    }
+</div>
+
+<!-- Modal para Detalles de Seguimiento -->
+<div class="modal fade" id="detalleSeguimientoModal" tabindex="-1" aria-labelledby="detalleSeguimientoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detalleSeguimientoModalLabel">Detalles de Seguimiento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="detalleSeguimientoContenido">
+                <!-- Contenido cargado por AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetBadgeClass(string tipo)
+    {
+        return tipo == "Descanso Médico" ? "bg-info" : "bg-warning text-dark";
+    }
+
+    public string GetEstadoBadgeClass(string estado)
+    {
+        return estado switch
+        {
+            "Aprobado" => "bg-success",
+            "Rechazado" => "bg-danger",
+            "En Observación" => "bg-warning text-dark",
+            "En Proceso" => "bg-primary",
+            _ => "bg-secondary"
+        };
+    }
+
+    public string GetEstadoMiniBadge(string estado)
+    {
+        return estado switch
+        {
+            "Aprobado" or "Válido" or "Subsidio" => "bg-success text-white",
+            "Rechazado" or "No válido" => "bg-danger text-white",
+            "En Observación" => "bg-warning text-dark",
+            "En Proceso" => "bg-primary text-white",
+            _ => "bg-light text-dark border"
+        };
+    }
+
+    public string GetProgressBarClass(int progreso)
+    {
+        if (progreso >= 100) return "bg-success";
+        if (progreso >= 75) return "bg-info";
+        if (progreso >= 50) return "bg-primary";
+        if (progreso >= 25) return "bg-warning";
+        return "bg-secondary";
+    }
+}
+
+<style>
+    .card {
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1) !important;
+    }
+
+    .timeline-visual {
+        padding: 10px 0;
+    }
+
+    .timeline-step {
+        text-align: center;
+        flex: 1;
+        position: relative;
+        min-width: 60px;
+    }
+
+    .timeline-step:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        top: 8px;
+        right: -50%;
+        width: 100%;
+        height: 2px;
+        background-color: #e9ecef;
+        z-index: 1;
+    }
+
+    .timeline-step.completed:not(:last-child)::after {
+        background-color: #198754;
+    }
+
+    .timeline-dot {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        margin: 0 auto 5px;
+        position: relative;
+        z-index: 2;
+        transition: all 0.3s ease;
+    }
+
+    .timeline-step.completed .timeline-dot {
+        background-color: #198754;
+        border: 2px solid #198754;
+        transform: scale(1.1);
+    }
+
+    .progress {
+        border-radius: 10px;
+    }
+
+    .progress-bar {
+        border-radius: 10px;
+        transition: width 0.6s ease;
+    }
+
+    .estados-detallados .badge {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.4rem;
+    }
+
+    .timeline-step small {
+        font-size: 0.7rem;
+        line-height: 1.2;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function aplicarFiltros() {
+            // ... código anterior (mantener igual) ...
+        }
+
+        function verDetalleSeguimiento(descansoId) {
+            $.get('@Url.Action("DetalleSolicitudCompleto", "Lista")', { descansoId: descansoId }, function(data) {
+                $('#detalleSeguimientoContenido').html(data);
+                $('#detalleSeguimientoModal').modal('show');
+            }).fail(function() {
+                alert('Error al cargar los detalles del seguimiento');
+            });
+        }
+
+        // Auto-refresh cada 30 segundos
+        setInterval(function() {
+            console.log('Actualizando estados de seguimiento...');
+            location.reload(); // Recarga simple para actualizar estados
+        }, 30000);
+    </script>
+}

@@ -1,0 +1,97 @@
+@model List<proyectoIngSoft.Models.User>
+
+@{
+    ViewData["Title"] = "Solicitar Información Adicional";
+}
+
+<div class="container mt-4">
+    <h2>Solicitar Información del Trabajador</h2>
+
+    <div class="input-group mb-3 mt-3">
+        <input type="text" id="filtro" class="form-control" placeholder="Buscar por DNI o nombre..." />
+        <button class="btn btn-primary" onclick="buscarTrabajador()">Buscar</button>
+    </div>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>DNI</th>
+                <th>Nombre</th>
+                <th>Apellidos</th>
+                <th>Cargo</th>
+                <th>Teléfono</th>
+                <th>Distrito</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="tablaTrabajadores">
+            @foreach (var t in Model)
+            {
+                <tr>
+                    <td>@t.Dni</td>
+                    <td>@t.Username</td>
+                    <td>@t.Apellidos</td>
+                    <td>@t.CargoLaboral</td>
+                    <td>@t.Telefono</td>
+                    <td>@t.Distrito</td>
+                    <td>
+                        <button class="btn btn-outline-info btn-sm" onclick="verDetalles(@t.IdUser)">Ver Detalles</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Detalles del Usuario (contenido viene de _DetalleTrabajador partial) -->
+<div class="modal fade" id="modalDetalles" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detalleContenido">
+                <p class="text-center text-muted">Cargando información...</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button id="btnSolicitar" class="btn btn-primary">Solicitar Información Adicional</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function buscarTrabajador() {
+        const filtro = encodeURIComponent(document.getElementById("filtro").value.trim());
+        window.location.href = `/Trabajadores/SolicitarInformacion?filtro=${filtro}`;
+    }
+
+    function verDetalles(id) {
+        fetch(`/Trabajadores/Detalle/${id}`)
+            .then(res => {
+                if (!res.ok) throw new Error("Error al cargar detalle");
+                return res.text();
+            })
+            .then(html => {
+                document.getElementById("detalleContenido").innerHTML = html;
+                const modal = new bootstrap.Modal(document.getElementById("modalDetalles"));
+                modal.show();
+
+                // configurar botón para redirigir a la vista completa
+                const btnSolicitar = document.getElementById("btnSolicitar");
+                btnSolicitar.onclick = function() {
+                    // cerrar modal y redirigir a la vista InformacionAdicional
+                    modal.hide();
+                    window.location.href = `/Trabajadores/InformacionAdicional/${id}`;
+                };
+            })
+            .catch(err => {
+                document.getElementById("detalleContenido").innerHTML = "<p class='text-danger text-center'>No se pudo cargar la información.</p>";
+                console.error(err);
+            });
+    }
+</script>
+}
