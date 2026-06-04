@@ -2,10 +2,10 @@
 @inject IHttpContextAccessor HttpContextAccessor
 
 @{
-    var user = HttpContextAccessor.HttpContext?.Session.GetString("User");
+    // Obtener datos de la sesión
+    var userEmail = HttpContextAccessor.HttpContext?.Session.GetString("User");
     var rol = HttpContextAccessor.HttpContext?.Session.GetString("Rol");
 }
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -13,37 +13,99 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - proyectoIngSoft</title>
-    <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/proyectoIngSoft.styles.css" asp-append-version="true" />
+    
+
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">proyectoIngSoft</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">HY ASESORES S.A.C.</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" 
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                                        <ul class="navbar-nav flex-grow-1">
-                        @if (!string.IsNullOrEmpty(user))
+                    <ul class="navbar-nav flex-grow-1">
+
+                        @if (!string.IsNullOrEmpty(userEmail))
                         {
-                            if (rol == "Jefe")
+
+                            @if (rol == "Jefe")
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" id="gestionDropdown" role="button" data-bs-toggle="dropdown">
+                                        Gestión
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Lista" asp-action="Index">Lista</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Lista" asp-action="DescansosProlongados">Subsidios</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Lista" asp-action="SubsidiosJefe">Subsidios Jefe</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Lista" asp-action="SupervisionSubsidios">Gestión de Subsidios por Descanso Médico</a></li>
+                                        <li><a class="dropdown-item" asp-controller="SistemaSolicitud" asp-action="ListaSolicitudes">Ver Lista de Solicitudes</a></li>
+                                        @* sección nueva *@
+                                        <li><a class="dropdown-item" asp-controller="Historial" asp-action="Index">Historial de Descansos</a></li>
+                                    </ul>
+                                </li>
+
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" id="monitoreoDropdown" role="button" data-bs-toggle="dropdown">
+                                        Monitoreo
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Monitoreo" asp-action="Index">Monitoreo de Subsidios</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Trabajadores" asp-action="Index">Días acumulados</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Lista" asp-action="ReporteMensual">Reporte Mensual</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Monitoreo" asp-action="HU16">Historial de Pago de Subsidios 2025</a></li>
+                                    </ul>
+                                </li>
+
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" id="notifDropdown" role="button" data-bs-toggle="dropdown">
+                                        Notificaciones
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="/Simulaciones/CrearNotificacion">Notificar actividadel trabajador</a></li>
+                                    </ul>
+                                </li>
+                                
+                            }
+                            else if (rol == "Bienestar")
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Lista" asp-action="Index">Lista</a>
+                                    <li><a class="nav-link text-dark" asp-controller="Lista" asp-action="Index">Lista</a></li>
+                                    <a class="nav-link text-dark" asp-controller="SistemaSolicitud" asp-action="ListaSolicitudes">
+                                        Ver Lista de Solicitudes
+                                    </a>
+                                    <li><a class="nav-link text-dark" asp-controller="Lista" asp-action="DescansosProlongados">Subsidios</a></li>
+
+                                    <li>
+                                        <a class="nav-link text-dark" asp-controller="Trabajadores" asp-action="SolicitarInformacion">Solicitar Información</a>
+                                    </li>
                                 </li>
                             }
-                            else
+                            else if (rol == "Empleado" || rol == "Trabajador")
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="SistemaSolicitud" asp-action="Index">Solicitudes</a>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-dark" href="#" id="empleadoDropdown" role="button" data-bs-toggle="dropdown">
+                                        Opciones
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="SistemaSolicitud" asp-action="Index">Solicitudes</a></li>
+
+                                        @if (rol == "Trabajador")
+                                        {
+                                            <li><a class="dropdown-item" asp-controller="Simulaciones" asp-action="MisNotificaciones">Notificaciones de inactividad</a></li>
+                                        }
+                                    </ul>
                                 </li>
                             }
                         }
+
                     </ul>
 
                     <partial name="_LoginPartial" />
@@ -51,6 +113,7 @@
             </div>
         </nav>
     </header>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -59,12 +122,15 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - proyectoIngSoft - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - proyectoIngSoft - 
+            <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

@@ -1,0 +1,49 @@
+@model List<proyectoIngSoft.Models.NotificacionSimulada>
+
+@{
+    ViewData["Title"] = "Mis Notificaciones";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                <i class="bi bi-bell-fill me-2"></i> Mis Notificaciones
+            </h4>
+        </div>
+
+        <div class="card-body">
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    No tienes notificaciones en este momento.
+                </div>
+            }
+            else
+            {
+                <div class="list-group">
+                    @foreach (var n in Model)
+                    {
+                        <div class="list-group-item list-group-item-action mb-2 border rounded shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="fw-bold mb-1 text-primary">
+                                        <i class="bi bi-envelope-paper me-2"></i>@n.Tipo
+                                    </h6>
+                                    <p class="mb-1 text-dark">@n.Mensaje</p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-person-circle me-1"></i>De: @n.De
+                                    </small>
+                                </div>
+                                <small class="text-secondary">
+                                    <i class="bi bi-clock me-1"></i>@n.Fecha.ToLocalTime().ToString("g")
+                                </small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

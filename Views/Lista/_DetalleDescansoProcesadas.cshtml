@@ -1,0 +1,162 @@
+@model proyectoIngSoft.Models.Descanso
+
+<div class="modal-body d-flex justify-content-center">
+    <div class="card-custom">
+
+        <!-- Nombre y DNI -->
+        <div class="info-box row">
+            <div class="col">
+                <p class="label-title">Nombre Completo</p>
+                <p>@Model.User.Username @Model.User.Apellidos</p>
+            </div>
+            <div class="col">
+                <p class="label-title">DNI</p>
+                <p>@Model.User.Dni</p>
+            </div>
+        </div>
+
+        <!-- Tipo de Licencia -->
+        <div>
+            <p class="label-title">Tipo de Licencia</p>
+            <p class="status-blue">@Model.TipoDescanso.Nombre</p>
+
+            <div class="row mt-2">
+                <div class="col">
+                    <p class="label-title">Fecha de Registro</p>
+                    <p>@Model.FechaSolicitud.ToString("dd/MM/yyyy")</p>
+                </div>
+                <div class="col">
+                    <p class="label-title">Estado Actual</p>
+                    @if (Model.EstadoProcesado == "Procesado")
+                    {
+                        <span class="badge-color morado">Procesado</span>
+                    }
+                    else if (Model.EstadoProcesado == "Aceptado")
+                    {
+                        <span class="badge-color verde">Aceptado</span>
+                    }
+                    else if (Model.EstadoProcesado == "Rechazado")
+                    {
+                        <span class="badge-color rojo">Rechazado</span>
+                    }
+                    else
+                    {
+                        <span class="badge-color morado">Procesado</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div>
+            <p class="label-title">Información Adicional</p>
+            <p class="info-box text-muted">
+                @if (Model.Accidente != null)
+                {
+                    @Model.Accidente.Observaciones
+                }
+                else if (Model.Maternidad != null)
+                {
+                    @Model.Maternidad.Descripcion
+                }
+                else if (Model.Enfermedad != null)
+                {
+                    @Model.Enfermedad.DescEnfe
+                }
+                else
+                {
+                    @("N/A")
+                }
+            </p>
+        </div>
+
+        <!-- Documentos -->
+        <div>
+            <p class="label-title">Documentos Presentados</p>
+            @if (Model.DocumentosMedicos != null && Model.DocumentosMedicos.Any())
+            {
+                @foreach (var doc in Model.DocumentosMedicos)
+                {
+                    <div class="document-item">
+                        <div class="doc-info">
+                            <i class="bi bi-file-earmark-pdf text-danger me-2 fs-5"></i>
+                            <span>@doc.Nombre</span>
+                        </div>
+                        <a class="btn-link-pdf"
+                           href="@Url.Action("VerDocumento", "Lista", new { id = doc.IdDocumento })"
+                           target="_blank">Ver PDF</a>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted">No hay documentos médicos asociados.</p>
+            }
+        </div>
+
+        <!-- Botones para cambiar estado -->
+        <div>
+            <p class="label-title">Cambiar Estado de la Solicitud</p>
+            <div class="d-grid gap-2">
+                <button type="button" 
+                        class="btn btn-success" 
+                        onclick="cambiarEstado(@Model.IdDescanso, 'Aceptado')">
+                    ✅ Aceptado
+                </button>
+                <button type="button" 
+                        class="btn btn-danger" 
+                        onclick="cambiarEstado(@Model.IdDescanso, 'Rechazado')">
+                    ❌ Rechazado
+                </button>
+            </div>
+            <div id="mensajeResultado" class="mt-2"></div>
+        </div>
+        
+    </div>
+</div>
+
+<script>
+function cambiarEstado(descansoId, nuevoEstado) {
+    if (!confirm(`¿Está seguro de cambiar el estado a "${nuevoEstado}"?`)) {
+        return;
+    }
+
+    $.post("/Lista/CambiarEstadoProcesada", 
+    { 
+        descansoId: descansoId, 
+        nuevoEstado: nuevoEstado 
+    }, 
+    function (response) {
+        if (response.success) {
+            $('#mensajeResultado').html(`
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    ${response.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+            
+            // Cerrar el modal después de 2 segundos y recargar la página
+            setTimeout(function() {
+                $('#detalleModalProcesadas').modal('hide');
+                location.reload();
+            }, 2000);
+        } else {
+            $('#mensajeResultado').html(`
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ${response.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+        }
+    }).fail(function() {
+        $('#mensajeResultado').html(`
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                Error al cambiar el estado.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `);
+    });
+}
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" href="~/css/Modal.css" asp-append-version="true">

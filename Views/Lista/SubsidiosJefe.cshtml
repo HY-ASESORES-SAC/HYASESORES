@@ -1,0 +1,157 @@
+@model IEnumerable<dynamic>
+
+<div class="container-fluid py-4">
+    <h2 class="fw-bold mb-1">Control de subsidios</h2>
+    <p class="text-muted mb-4">Administra y procesa subsidios por descansos médicos prolongados</p>
+
+    <!-- ====== RESUMEN SUPERIOR ====== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-secondary mb-1">Total Subsidios</h6>
+                    <h2 class="fw-bold">@ViewBag.Total</h2>
+                    <small class="text-muted">Este mes<br><span class="text-success">+2 desde ayer</span></small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-secondary mb-1">Pendientes</h6>
+                    <h2 class="fw-bold text-warning">@ViewBag.Pendientes</h2>
+                    <small class="text-muted">Esperando revisión<br>3 críticos</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-secondary mb-1">Aprobados</h6>
+                    <h2 class="fw-bold text-success">@ViewBag.Aprobados</h2>
+                    <small class="text-muted">En proceso<br><span class="text-success">+5 esta semana</span></small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-secondary mb-1">Rechazados</h6>
+                    <h2 class="fw-bold text-danger">@ViewBag.Rechazados</h2>
+                    <small class="text-muted">Requieren seguimiento<br>Documentación incompleta</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====== TABLA PRINCIPAL ====== -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body">
+            <h5 class="mb-3"><i class="bi bi-clipboard2-pulse"></i> Subsidios para empleados con más de 20 días de descanso médico</h5>
+
+            <div class="table-responsive">
+                <table class="table align-middle table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>DNI</th>
+                            <th>Empleado</th>
+                            <th>Días de Descanso</th>
+                            <th>Razón Médica</th>
+                            <th>Fecha Inicio</th>
+                            <th>Estado Descanso Médico</th>
+                            <th>Estado Subsidio</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            foreach (var d in Model)
+                            {
+                                <tr>
+                                    <td>@d.Dni</td>
+                                    <td>@d.Nombre</td>
+                                    <td><span class="badge bg-primary-subtle text-primary fw-semibold">@d.Dias días</span></td>
+                                    <td>@d.Motivo</td>
+                                    <td>@d.FechaIni.ToString("yyyy-MM-dd")</td>
+                                    <td><span class="badge bg-success">Aprobado</span></td>
+
+                                    <td>
+                                        @if (d.EstadoSubsidioJ == "Aprobado")
+                                        {
+                                            <span class="badge bg-success">Aprobado</span>
+                                        }
+                                        else if (d.EstadoSubsidioJ == "Rechazado")
+                                        {
+                                            <span class="badge bg-danger">Rechazado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark">Pendiente</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (d.EstadoSubsidioJ == null || d.EstadoSubsidioJ == "Pendiente")
+                                        {
+                                            <button class="btn btn-success btn-sm me-1" onclick="aprobar(@d.IdDescanso)">✔️</button>
+                                            <button class="btn btn-danger btn-sm" onclick="rechazar(@d.IdDescanso)">❌</button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Procesado</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-3">No hay subsidios registrados.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== ESTILOS ====== -->
+<style>
+    body { background-color: #f8f9fa; }
+    .card { border-radius: 15px; }
+    .table thead th {
+        font-weight: 600;
+        color: #495057;
+    }
+    .badge.bg-success { background-color: #c5f1d1 !important; color: #107b2d; }
+    .badge.bg-danger { background-color: #f8d7da !important; color: #8b0000; }
+    .badge.bg-warning { background-color: #fff3cd !important; color: #856404; }
+    .badge.bg-primary-subtle {
+        background-color: #e7f1ff;
+        border: 1px solid #cde0ff;
+    }
+</style>
+
+<!-- ====== SCRIPTS ====== -->
+<script>
+    function aprobar(id) {
+        if (confirm("¿Aprobar este subsidio?")) {
+            $.post("/Lista/AprobarSubsidioJ", { id: id }, function (r) {
+                if (r.success) location.reload();
+                else alert("Error: " + r.message);
+            });
+        }
+    }
+
+    function rechazar(id) {
+        if (confirm("¿Rechazar este subsidio?")) {
+            $.post("/Lista/RechazarSubsidioJ", { id: id }, function (r) {
+                if (r.success) location.reload();
+                else alert("Error: " + r.message);
+            });
+        }
+    }
+</script>

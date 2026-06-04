@@ -1,0 +1,113 @@
+@model List<proyectoIngSoft.Models.User>
+
+@{
+    ViewData["Title"] = "Crear Notificación";
+    var busqueda = ViewBag.Busqueda as string ?? "";
+}
+
+<div class="container mt-4">
+    <!-- Título principal -->
+    <h2 class="text-center fw-bold mb-4 text-primary">SISTEMA DE NOTIFICACIONES</h2>
+
+    <!-- Subtítulo -->
+    <h5 class="text-center text-secondary mb-4">
+        Seleccione los empleados individuales de <strong>Norkys</strong> a los que desee enviar las notificaciones
+    </h5>
+
+    <!-- Filtro de búsqueda -->
+    <form method="get" asp-action="CrearNotificacion" class="mb-4">
+        <div class="input-group">
+            <span class="input-group-text bg-light fw-bold">Buscar empleado por nombre, cargo o DNI</span>
+            <input type="text" name="busqueda" class="form-control" placeholder="Ingrese búsqueda..." value="@busqueda" />
+            <button type="submit" class="btn btn-outline-primary">Filtrar</button>
+        </div>
+    </form>
+
+    <!-- Panel de seleccionados y botón de notificar -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="border p-2 rounded bg-light w-50">
+            <strong>Personas seleccionadas:</strong> 
+            <span id="seleccionados">0</span>
+        </div>
+        <button id="btnNotificar" class="btn btn-danger fw-bold">NOTIFICAR AHORA</button>
+    </div>
+
+    <!-- Formulario de envío -->
+    <form asp-action="CrearNotificacion" method="post" id="formNotificacion">
+        <input type="hidden" name="tipoNotificacion" value="General" />
+        <input type="hidden" name="mensaje" value="Este es un mensaje de prueba de notificación" />
+
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col"></th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Apellidos</th>
+                    <th scope="col">DNI</th>
+                    <th scope="col">Correo</th>
+                    <th scope="col">Rol</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var emp in Model)
+                    {
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="trabajadoresSeleccionados" value="@emp.IdUser" class="check-empleado" />
+                            </td>
+                            <td>@emp.Username</td>
+                            <td>@emp.Apellidos</td>
+                            <td>@emp.Dni</td>
+                            <td>@emp.Email</td>
+                            <td>@emp.Rol</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No se encontraron trabajadores.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </form>
+
+    <!-- Mensajes de éxito o error -->
+    @if (TempData["Exito"] != null)
+    {
+        <div class="alert alert-success">@TempData["Exito"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Actualizar contador de seleccionados
+        const checkboxes = document.querySelectorAll('.check-empleado');
+        const contador = document.getElementById('seleccionados');
+        const form = document.getElementById('formNotificacion');
+        const btnNotificar = document.getElementById('btnNotificar');
+
+        function actualizarContador() {
+            const seleccionados = document.querySelectorAll('.check-empleado:checked').length;
+            contador.textContent = seleccionados;
+        }
+
+        checkboxes.forEach(chk => chk.addEventListener('change', actualizarContador));
+
+        // Enviar formulario al hacer clic en Notificar
+        btnNotificar.addEventListener('click', () => {
+            if (document.querySelectorAll('.check-empleado:checked').length === 0) {
+                alert('Debe seleccionar al menos un empleado.');
+                return;
+            }
+            form.submit();
+        });
+    </script>
+}

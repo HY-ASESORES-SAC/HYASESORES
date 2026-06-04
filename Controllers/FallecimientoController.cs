@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using proyectoIngSoft.Data;
 using proyectoIngSoft.Models;
+using proyectoIngSoft.Helpers;
 
 namespace proyectoIngSoft.Controllers
 {
@@ -24,49 +25,44 @@ namespace proyectoIngSoft.Controllers
 
         public IActionResult Index()
         {
-            var documentos = _context.DocumentosMedicos.ToList();
             return View();
         }
+
         [HttpPost]
-       
+        [ValidateAntiForgeryToken]
         public IActionResult Registrar(Fallecimiento model)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    // 1. Guardar Accidente
+                    // 1. Obtener usuario actual
+                    var user = UserHelper.GetCurrentUser(HttpContext, _context);
+                    if (user == null)
+                    {
+                        // No hay usuario autenticado
+                        return RedirectToAction("Login", "Auth");
+                    }
+
+                    // 2. Guardar Fallecimiento
                     _context.DbSetFallecimiento.Add(model);
                     _context.SaveChanges();
 
-                    // 2. Obtener usuario logueado (simulado)
-                    var username = HttpContext.Session.GetString("User");
-                    if (string.IsNullOrEmpty(username))
-                    {
-                        ViewData["Message"] = "No hay usuario logueado";
-                        return View("Index", model);
-                    }
-
-                    var user = _context.DbSetUser.FirstOrDefault(u => u.Username == username);
-                    if (user == null)
-                    {
-                        ViewData["Message"] = "Usuario no encontrado";
-                        return View("Index", model);
-                    }
-
-                    // 3. Crear Descanso
+                    // 3. Crear Descanso (usar conversión segura de fechas)
                     var descanso = new Descanso
                     {
                         UserId = user.IdUser,               // FK a T_Usuarios
-                        TipoDescansoId = 4,                 // 1 = Accidente
+                        TipoDescansoId = 4,                 // 4 = Fallecimiento Familiar
                         FechaSolicitud = DateTime.UtcNow,
-                        FallecimientoId = model.IdFallec     // FK al Accidente recién creado
+                        FechaIni = ConvertToUtc(model.FechaIni),
+                        FechaFin = ConvertToUtc(model.FechaFin),
+                        FallecimientoId = model.IdFallec
                     };
 
                     _context.DbSetDescanso.Add(descanso);
                     _context.SaveChanges();
 
-                    ViewData["Message"] = "Accidente registrado con éxito";
+                    ViewData["Message"] = "Fallecimiento registrado con éxito";
                     return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
                 }
                 catch (Exception ex)
@@ -80,14 +76,38 @@ namespace proyectoIngSoft.Controllers
                 ViewData["Message"] = "Datos de entrada no válidos";
             }
             return View("Index");
-            
-
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View("Error!");
+            return View("Error");
+        }
+
+		// Método auxiliar para convertir fechas a UTC de forma robusta
+        private DateTime ConvertToUtc(object dateObj)
+        {
+            if (dateObj == null)
+                throw new ArgumentNullException(nameof(dateObj), "La fecha no puede ser null");
+
+            if (dateObj is DateTime dt)
+            {
+                return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+            }
+
+#if NET6_0_OR_GREATER
+            if (dateObj is DateOnly d)
+            {
+                return DateTime.SpecifyKind(d.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+            }
+#endif
+            var s = dateObj.ToString();
+            if (DateTime.TryParse(s, out var parsed))
+            {
+                return DateTime.SpecifyKind(parsed, DateTimeKind.Utc);
+            }
+
+            throw new InvalidOperationException("Tipo de fecha no soportado: " + dateObj.GetType());
         }
     }
 }

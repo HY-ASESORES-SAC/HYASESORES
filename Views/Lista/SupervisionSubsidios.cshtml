@@ -1,0 +1,278 @@
+@model List<SupervisionSubsidioViewModel>
+
+<div class="table-wrapper"> 
+<div class="contenedor-tabla mt-4 shadow-sm p-4 rounded bg-white tabla-expandible">
+    <!-- Título y botón -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h5 class="fw-bold">
+                <i class="bi bi-file-earmark-text me-1"></i>
+                Gestión de Subsidios por Descanso Médico
+            </h5>
+            <small class="text-secondary">Subsidios para empleados con más de 20 días de descanso médico</small>
+        </div>
+        <button id="btnReporte" class="btn btn-primary">
+            <i class="bi bi-send"></i> Enviar Reporte (0)
+        </button>
+    </div>
+
+    <hr style="margin-top:6px; margin-bottom:20px; border-color:#dcdcdc; opacity:0.9; margin-left:-1.5rem; margin-right:-1.5rem;">
+
+    <!-- Buscador + contador -->
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="search-container">
+            <i class="bi bi-search search-icon"></i>
+            <input id="buscador" type="text" class="form-control search-input" placeholder="Buscar por nombre o DNI..." />
+        </div>
+        <small id="txtSeleccionados" class="text-secondary">
+            0 seleccionado(s) • 0 de @Model.Count registros
+        </small>
+    </div>
+
+    <!-- Tabla -->
+    <table class="table align-middle table-hover text-nowrap" id="tablaSubsidios">
+        <thead class="table-light">
+            <tr>
+                <th style="width:40px;"><input type="checkbox" id="chkSelectAll" /></th>
+                <th>DNI</th>
+                <th>Empleado</th>
+                <th>Días de Descanso</th>
+                <th>Razón Médica</th>
+                <th>Fecha Inicio</th>
+                <th>Estado Descanso Médico</th>
+                <th>Estado Subsidio</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="text-center">
+                        <input type="checkbox" class="chk-subsidio" value="@item.IdDescanso" />
+                    </td>
+                    <td class="fw-bold">@item.Dni</td>
+                    <td>
+                        <span class="iniciales">
+                            @item.Nombre.Substring(0,1)@item.Nombre.Split(' ')[1].Substring(0,1)
+                        </span>
+                        <span class="ms-2">@item.Nombre</span>
+                    </td>
+                    <td><span class="badge bg-primary-subtle text-primary">@item.Dias días</span></td>
+                    <td class="razon-medica">@item.Motivo</td>
+                    <td>@item.FechaIni.ToString("dd/MM/yyyy")</td>
+
+                    <!-- Estado descanso médico: siempre aprobado -->
+                    <td><span class="badge bg-success-subtle text-success">Aprobado</span></td>
+
+                    <!-- Estado subsidio real -->
+                    <td>
+                        @if (item.EstadoSubsidioJ == "Aprobado")
+                        {
+                            <span class="badge bg-success-subtle text-success">Aprobado</span>
+                        }
+                        else if (item.EstadoSubsidioJ == "Rechazado")
+                        {
+                            <span class="badge bg-danger-subtle text-danger">Rechazado</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Mensaje flotante -->
+    <div id="mensaje" class="alerta" style="display:none;"></div>
+</div>
+</div>
+
+    <style>
+        body { 
+            background-color: #f4f6f8; 
+        }
+        .badge { 
+            padding: 6px 10px;
+            font-size: 0.85rem;
+        }
+        input[type="checkbox"] { 
+            -webkit-appearance:none;
+            appearance:none; width:18px;
+            height:18px; border-radius:4px;
+            border:1px solid #bbb;
+            background-color:#f1f1f1; cursor:pointer;
+            position:relative;
+            transition:background-color .12s ease; 
+        }
+        input[type="checkbox"]:checked { 
+            background-color:#000;
+            border-color:#000;
+        }
+        input[type="checkbox"]:checked::after { 
+            content:"";
+            position:absolute;
+            left:4px;
+            top:1px;
+            width:6px;
+            height:11px;
+            border:solid #fff;
+            border-width:0 2px 2px 0;
+            transform:rotate(45deg);
+        }
+        #chkSelectAll { 
+            margin-left:3px;
+        }
+        #tablaSubsidios tbody tr.selected td {
+            background-color:#e7f1fa !important;
+        }
+        .table-hover tbody tr:hover td { 
+            background-color:#f2f6fa;
+        }
+        .badge-success, .bg-success-subtle.text-success { 
+            background-color:#d4f8d4 !important;
+            color:#198754 !important;
+        }
+        .badge-danger, .bg-danger-subtle.text-danger { 
+            background-color:#ffe1e1 !important;
+            color:#dc3545 !important;
+        }
+        .search-container { 
+            position:relative; width:470px;
+        }
+        .search-icon { 
+            position:absolute;
+            top:50%;
+            left:12px;
+            transform:translateY(-50%);
+            color:#7a7a7a;
+        }
+        .search-input { 
+            padding-left:38px;
+            border:none;
+            border-radius:10px;
+            height:38px;
+            background-color:#f1f3f6;
+            box-shadow:0 2px 6px rgba(0,0,0,0.08);
+        }
+        .alerta { 
+            position:fixed;
+            top:20px;
+            right:20px;
+            padding:6px 20px;
+            border-radius:8px; color:#fff;
+            font-weight:500;
+            opacity:0;
+            transition:opacity .4s;
+            width:400px;
+            height:37px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            z-index:9999;
+        }
+        .alerta.mostrar { 
+            opacity:1;
+        }
+        .iniciales { 
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            width:34px; height:34px;
+            border-radius:50%;
+            background-color:#e0e0e07e;
+            color:#555;
+            font-weight:600;
+            font-size:0.9rem;
+            text-transform: uppercase;
+        }
+    </style>
+
+@section Scripts {
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById('buscador');
+    const table = document.getElementById('tablaSubsidios');
+    const tbody = table.querySelector('tbody');
+    const chkSelectAll = document.getElementById('chkSelectAll');
+    const btnReporte = document.getElementById('btnReporte');
+    const txtSeleccionados = document.getElementById('txtSeleccionados');
+    const mensaje = document.getElementById('mensaje');
+
+    const allRows = () => Array.from(tbody.querySelectorAll('tr'));
+    const visibleRows = () => allRows().filter(r => r.style.display !== 'none');
+    const visibleCheckboxes = () => visibleRows().map(r => r.querySelector('.chk-subsidio'));
+
+    function actualizarSeleccion() {
+        const selectedCount = document.querySelectorAll('.chk-subsidio:checked').length;
+        const visibleCount = visibleRows().length;
+        txtSeleccionados.textContent = `${selectedCount} seleccionado(s) • ${visibleCount} de ${allRows().length} registros`;
+        btnReporte.innerHTML = `<i class="bi bi-send"></i> Enviar Reporte (${selectedCount})`;
+        const visibles = visibleCheckboxes();
+        chkSelectAll.checked = visibles.length > 0 && visibles.every(chk => chk.checked);
+    }
+
+    function filtrar() {
+        const q = searchInput.value.trim().toLowerCase();
+        let coincidencias = 0;
+
+        allRows().forEach(row => {
+            const text = row.innerText.toLowerCase();
+            const visible = text.includes(q);
+            row.style.display = visible ? '' : 'none';
+            if (visible) coincidencias++;
+        });
+
+        actualizarSeleccion();
+
+        // Mostrar mensaje si no hay resultados visibles
+        if (q.length > 0 && coincidencias === 0) {
+            showMessage('No se encontró trabajador con ese DNI o nombre', '#c21212');
+        } else {
+            // Ocultar mensaje si vuelve a haber resultados
+            mensaje.style.display = 'none';
+        }
+    }
+
+    chkSelectAll.addEventListener('change', () => {
+        const checked = chkSelectAll.checked;
+        visibleCheckboxes().forEach(chk => {
+            chk.checked = checked;
+            chk.closest('tr')?.classList.toggle('selected', checked);
+        });
+        actualizarSeleccion();
+    });
+
+    tbody.addEventListener('change', e => {
+        if (!e.target.classList.contains('chk-subsidio')) return;
+        e.target.closest('tr').classList.toggle('selected', e.target.checked);
+        actualizarSeleccion();
+    });
+
+    function showMessage(text, bgColor) {
+        mensaje.textContent = text;
+        mensaje.style.backgroundColor = bgColor;
+        mensaje.classList.add('mostrar');
+        mensaje.style.display = 'block';
+        setTimeout(() => mensaje.classList.remove('mostrar'), 1500);
+    }
+
+    btnReporte.addEventListener('click', async () => {
+        const seleccionados = Array.from(document.querySelectorAll('.chk-subsidio:checked')).map(x => x.value);
+        if (seleccionados.length === 0) {
+            showMessage('Debe seleccionar al menos un subsidio', '#c21212');
+            return;
+        }
+        showMessage('Enviado exitosamente', '#21944d');
+
+        await fetch('/Lista/EnviarSeleccionados', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(seleccionados)
+        });
+
+        setTimeout(() => window.location.href = '/Trabajadores/Index', 1500);
+    });
+
+    searchInput.addEventListener('input', filtrar);
+});
+</script>
+}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">

@@ -1,0 +1,128 @@
+@model List<proyectoIngSoft.Controllers.MonitoreoViewModel>
+@{
+    ViewData["Title"] = "Historial de Pagos de Subsidios 2025";
+    var fechaActual = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+}
+
+<div class="container mt-4">
+    <!-- Encabezado -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="fw-bold text-primary">HISTORIAL DE PAGOS DE SUBSIDIOS 2025</h2>
+        <p class="text-muted">Última actualización: <strong>@fechaActual</strong></p>
+    </div>
+    <div>
+        <button id="btnActualizar" class="btn btn-outline-primary me-2">
+            🔄 Actualizar
+        </button>
+        <a asp-controller="Monitoreo" asp-action="ExportarPDF_HU16" class="btn btn-success">
+            📊 Exportar informe
+        </a>
+    </div>
+</div>
+
+
+    <!-- Filtros -->
+    <div class="d-flex align-items-center mb-4">
+        <label class="me-2 fw-semibold">Filtrar por tipo de subsidio:</label>
+        <select id="filtroTipo" class="form-select w-auto">
+            <option value="Todos" selected>Todos</option>
+            <option value="Maternidad">Maternidad</option>
+            <option value="Enfermedad">Enfermedad</option>
+            <option value="Accidente">Accidente Laboral</option>
+        </select>
+    </div>
+
+    <!-- Tabla -->
+    <table class="table table-striped table-hover shadow-sm">
+        <thead class="table-primary">
+            <tr>
+                <th>Trabajador</th>
+                <th>Tipo de Subsidio</th>
+                <th>Fecha Inicio</th>
+                <th>Fecha Fin</th>
+                <th>Días</th>
+                <th>Pago por Día (S/)</th>
+                <th>Total (S/)</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody id="tablaPagos">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var d in Model)
+                {
+                    <tr data-tipo="@d.TipoSubsidio.ToLower()">
+                        <td>@d.Nombre</td>
+                        <td>@d.TipoSubsidio</td>
+                        <td>@d.FechaInicio.ToString("dd/MM/yyyy")</td>
+                        <td>@d.FechaFin.ToString("dd/MM/yyyy")</td>
+                        <td>@d.Dias</td>
+                        <td>@d.PagoPorDia</td>
+                        <td>@d.Total</td>
+                        <td>
+                            @if (d.Estado == "Aprobado")
+                            {
+                                <span class="badge bg-success">Aprobado</span>
+                            }
+                            else if (d.Estado == "Pendiente")
+                            {
+                                <span class="badge bg-warning text-dark">Pendiente</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">@d.Estado</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="text-center text-muted">No hay datos disponibles</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        // ✅ Botón "Actualizar": recargar la página
+        document.getElementById("btnActualizar").addEventListener("click", () => {
+            location.reload();
+        });
+
+        // ✅ Botón "Exportar informe": descargar Excel
+        document.getElementById("btnExportar").addEventListener("click", async () => {
+            try {
+                const response = await fetch('/Monitoreo/ExportarExcel');
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'Historial_Pagos_Subsidios_2025.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            } catch (err) {
+                alert("⚠️ Error al exportar el informe.");
+            }
+        });
+
+        // ✅ Filtro dinámico
+        document.getElementById("filtroTipo").addEventListener("change", (e) => {
+            const filtro = e.target.value.toLowerCase();
+            document.querySelectorAll("#tablaPagos tr").forEach(row => {
+                const tipo = row.getAttribute("data-tipo");
+                if (filtro === "todos" || tipo.includes(filtro)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+    </script>
+}

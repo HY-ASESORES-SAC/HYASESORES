@@ -1,0 +1,94 @@
+@model IEnumerable<proyectoIngSoft.Controllers.ReporteMesViewModel>
+@{
+    ViewData["Title"] = "Reporte de Subsidios y Descansos Médicos";
+}
+
+<div class="container mt-4">
+    <h3 class="fw-bold text-center text-primary">Reporte de Subsidios y Descansos Médicos</h3>
+    <p class="text-end text-muted">Fecha de generación: @ViewBag.FechaGeneracion</p>
+
+    <div class="row text-center mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary shadow-sm">
+                <div class="card-body">
+                    <h5>Total Revisados</h5>
+                    <h3 class="fw-bold text-primary">@ViewBag.Total</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success shadow-sm">
+                <div class="card-body">
+                    <h5>Aprobados</h5>
+                    <h3 class="fw-bold text-success">@ViewBag.Aprobados</h3>
+                    <p>@ViewBag.PorcentajeAprobados% del total</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-danger shadow-sm">
+                <div class="card-body">
+                    <h5>Rechazados</h5>
+                    <h3 class="fw-bold text-danger">@ViewBag.Rechazados</h3>
+                    <p>@ViewBag.PorcentajeRechazados% del total</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info shadow-sm">
+                <div class="card-body">
+                    <h5>Promedio Mensual</h5>
+                    <h3 class="fw-bold text-info">@ViewBag.Promedio</h3>
+                    <p>casos/mes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-bordered text-center align-middle">
+        <thead class="table-primary">
+            <tr>
+                <th>Mes</th>
+                <th>Total</th>
+                <th>Subsidios</th>
+                <th>D. Médicos</th>
+                <th>Aprobados</th>
+                <th>Rechazados</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Mes</td>
+                    <td>@item.Total</td>
+                    <td>@item.Subsidios</td>
+                    <td>@item.DescansosMedicos</td>
+                    <td class="text-success">@item.Aprobados</td>
+                    <td class="text-danger">@item.Rechazados</td>
+                </tr>
+            }
+        </tbody>
+        <tfoot class="table-dark text-white">
+            <tr>
+                <td>TOTAL</td>
+                <td>@ViewBag.Total</td>
+                <td>@Model.Sum(x => x.Subsidios)</td>
+                <td>@Model.Sum(x => x.DescansosMedicos)</td>
+                <td>@ViewBag.Aprobados</td>
+                <td>@ViewBag.Rechazados</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="text-center mt-4">
+        <a href="/Resoluciones/ExportarResolucionesPDF" class="btn btn-success me-2">
+            <i class="bi bi-download"></i> Descargar PDF
+        </a>
+        <a href="/Monitoreo/HU16" class="btn btn-primary">
+            ← Volver al Dashboard
+        </a>
+    </div>
+
+    <p class="text-muted text-center mt-3">Documento generado automáticamente por el Sistema de Reportes Médicos</p>
+</div>

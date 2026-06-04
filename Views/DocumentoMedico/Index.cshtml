@@ -76,6 +76,14 @@
             </div>
         </div>
     </div>
+    <!-- Toast de error -->
+    <div id="errorToast" class="toast align-items-center text-bg-danger border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body">
+                @TempData["ErrorMessage"]
+            </div>
+        </div>
+    </div>
 </div>
     
 @section Scripts {
@@ -84,36 +92,55 @@
         const fileList = document.getElementById("fileList");
         const dropArea = document.getElementById("dropArea");
 
-        // Mostrar archivos seleccionados
-        fileInput.addEventListener("change", () => {
-            fileList.innerHTML = "";
-            [...fileInput.files].forEach((file, index) => {
-                let fileURL = URL.createObjectURL(file);
-                let fileSizeKB = (file.size / 1024).toFixed(2); // convertir a KB con 2 decimales
+// Mostrar archivos seleccionados + Validaciones
+fileInput.addEventListener("change", () => {
+    const archivos = [...fileInput.files];
+    fileList.innerHTML = "";
 
-                let item = document.createElement("div");
-                item.classList.add("d-flex", "justify-content-between", "align-items-center", "border", "rounded", "p-2", "mb-2");
+    // Validar cantidad máxima
+    if (archivos.length > 5) {
+        showToast("Solo se permiten maximo 5 documentos", true);
+        fileInput.value = "";
+        return;
+    }
 
-                item.innerHTML = `
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-file-earmark-pdf text-danger me-2"></i> 
-                        <span>${file.name}</span>
-                        <span class="badge bg-secondary ms-2">${fileSizeKB} KB</span>
-                    </div>
-                    <div>
-                        <button type="button" class="btn btn-link text-dark p-0 me-2" onclick="previewFile('${fileURL}', '${file.name}')">
-                            <i class="bi bi-eye fs-5"></i>
-                        </button>
-                        <button type="button" class="btn btn-link text-danger p-0" onclick="removeFile(${index})">
-                            <i class="bi bi-x fs-5"></i>
-                        </button>
-                    </div>
-                `;
-                fileList.appendChild(item);
-            });
-            // Notificación al seleccionar archivos
-            showToast(`${fileInput.files.length} archivo(s) subidos exitosamente.`);
-        });
+    // Validar tipo de archivo
+    for (let file of archivos) {
+        if (file.type !== "application/pdf") {
+            showToast("Solo se permiten archivos en formato PDF", true);
+            fileInput.value = "";
+            return;
+        }
+    }
+
+    // Mostrar archivos si todo está correcto
+    archivos.forEach((file, index) => {
+        let fileURL = URL.createObjectURL(file);
+        let fileSizeKB = (file.size / 1024).toFixed(2); // convertir a KB con 2 decimales
+
+        let item = document.createElement("div");
+        item.classList.add("d-flex", "justify-content-between", "align-items-center", "border", "rounded", "p-2", "mb-2");
+
+        item.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="bi bi-file-earmark-pdf text-danger me-2"></i> 
+                <span>${file.name}</span>
+                <span class="badge bg-secondary ms-2">${fileSizeKB} KB</span>
+            </div>
+            <div>
+                <button type="button" class="btn btn-link text-dark p-0 me-2" onclick="previewFile('${fileURL}', '${file.name}')">
+                    <i class="bi bi-eye fs-5"></i>
+                </button>
+                <button type="button" class="btn btn-link text-danger p-0" onclick="removeFile(${index})">
+                    <i class="bi bi-x fs-5"></i>
+                </button>
+            </div>
+        `;
+        fileList.appendChild(item);
+    });
+
+    showToast(`${archivos.length} archivo(s) subidos exitosamente`);
+});
 
         
         dropArea.addEventListener("dragover", (e) => {
@@ -148,8 +175,8 @@
             let modal = new bootstrap.Modal(document.getElementById("pdfModal"));
             modal.show();
         }
-        function showToast(message) {
-    let toastEl = document.getElementById('successToast');
+        function showToast(message, isError = false) {
+    let toastEl = isError ? document.getElementById('errorToast') : document.getElementById('successToast');
     if (toastEl) {
         toastEl.querySelector('.toast-body').textContent = message;
         let toast = new bootstrap.Toast(toastEl);
@@ -157,18 +184,33 @@
     }
 }
 
-        // Mostrar el mensaje del servidor (al enviar)
-        @if (TempData["Message"] != null)
+@if (TempData["Message"] != null)
 {
     <text>
         document.addEventListener("DOMContentLoaded", () => {
             showToast("@TempData["Message"]");
             setTimeout(() => {
                 window.location.href = '/ValidarDatos/Index';
-            }, 1500); // espera la notificacion
+            }, 1500);
         });
     </text>
 }
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <text>
+        document.addEventListener("DOMContentLoaded", () => {
+            showToast("@TempData["ErrorMessage"]", true);
+        });
+    </text>
+}
+// Evitar enviar si no hay archivos seleccionados
+document.getElementById("uploadForm").addEventListener("submit", function (e) {
+    if (!fileInput.files.length) {
+        e.preventDefault();
+        showToast("Debe cargar al menos un documento medico", true);
+    }
+});
     </script>
 }
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">

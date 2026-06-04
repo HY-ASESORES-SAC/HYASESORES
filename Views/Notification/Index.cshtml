@@ -176,6 +176,10 @@
         <!-- Lista de notificaciones (más amplia) -->
         <div class="col-5 border-end p-3">
             <h5>Notificaciones</h5>
+            @if (ViewBag.DebugInfo != null)
+            {
+                <div class="alert alert-info small">@ViewBag.DebugInfo</div>
+            }
             <ul class="list-group" id="notificaciones-lista">
                 @foreach (var n in notifsLocal)
                 {
