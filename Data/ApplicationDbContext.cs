@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using proyectoIngSoft.Models;
 
 namespace proyectoIngSoft.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -18,19 +17,19 @@ namespace proyectoIngSoft.Data
         public DbSet<Fallecimiento> DbSetFallecimiento { get; set; }
         public DbSet<DocumentoMedico> DocumentosMedicos { get; set; }
         public DbSet<EnfermedadFam> DbSetEnfermedadF { get; set; }
-
         public DbSet<User> DbSetUser { get; set; }
         public DbSet<Descanso> DbSetDescanso { get; set; }
-
         public DbSet<TipoDescanso> DbSetTipoDescanso { get; set; }
         public DbSet<ValidarDatos> ValidarDatos { get; set; }
         public DbSet<Notification> Notifications { get; set; }
+        public DbSet<CodigoSocial> DbSetCodigoSocial { get; set; }
+        public DbSet<NotificacionSimulada> DbSetNotificacionSimulada { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // 👇 configuración para que PostgreSQL entienda text[]
+            // Configuración para PostgreSQL
             modelBuilder.Entity<Notification>()
                 .Property(n => n.DocumentoAdjuntos)
                 .HasColumnType("text[]");

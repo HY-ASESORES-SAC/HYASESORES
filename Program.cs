@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using proyectoIngSoft.Data;
 
@@ -13,9 +13,20 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddRoles<IdentityRole>() // ✅ Habilitar roles
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+// 🔹 Registrar IHttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+
+// 🔹 Configurar autenticación basada en cookies (sin Identity)
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Auth/Login";
+        options.LogoutPath = "/Auth/Logout";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+    });
 
 builder.Services.AddControllersWithViews();
 
@@ -46,36 +57,14 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication();
-app.UseAuthorization();
-
-// 👇 Habilitar sesión
+// 👇 Habilitar sesión ANTES de autenticación
 app.UseSession();
 
-// ✅ Asignar el rol "Jefe" al usuario oskar@oskar
-using (var scope = app.Services.CreateScope())
-{
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
-
-    // Crear el rol "Jefe" si no existe
-    if (!await roleManager.RoleExistsAsync("Jefe"))
-    {
-        await roleManager.CreateAsync(new IdentityRole("Jefe"));
-    }
-
-    // Asignar el rol "Jefe" al usuario oskar@oskar
-    var jefe = await userManager.FindByEmailAsync("oskar@oskar");
-    if (jefe != null && !await userManager.IsInRoleAsync(jefe, "Jefe"))
-    {
-        await userManager.AddToRoleAsync(jefe, "Jefe");
-    }
-}
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-app.MapRazorPages();
 
 app.Run();

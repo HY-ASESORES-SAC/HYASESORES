@@ -67,10 +67,13 @@
                                         <span class="badge motivo">@d.Motivo</span>
                                     </td>
                                     <td>
-                                        <a href="#" class="text-primary text-decoration-none">
-                                            Ver Documentos (3)
+                                        <a asp-controller="Lista" asp-action="VerDocumentos" asp-route-descansoId="@d.IdDescanso"
+                                        class="text-primary text-decoration-none">
+                                        Ver Documentos
                                         </a>
+
                                     </td>
+
                                     <td>@d.FechaIni.ToString("dd/MM/yyyy")</td>
                                     <td>@d.FechaFin.ToString("dd/MM/yyyy")</td>
                                     <td>@d.Dias días</td>

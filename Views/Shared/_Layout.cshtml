@@ -21,7 +21,7 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">proyectoIngSoft</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">HY ASESORES S.A.C.</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" 
                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -43,7 +43,7 @@
                                         <li><a class="dropdown-item" asp-controller="Lista" asp-action="Index">Lista</a></li>
                                         <li><a class="dropdown-item" asp-controller="Lista" asp-action="DescansosProlongados">Subsidios</a></li>
                                         <li><a class="dropdown-item" asp-controller="Lista" asp-action="SubsidiosJefe">Subsidios Jefe</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Lista" asp-action="SupervisionSubsidios">Supervisión</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Lista" asp-action="SupervisionSubsidios">Gestión de Subsidios por Descanso Médico</a></li>
                                         <li><a class="dropdown-item" asp-controller="SistemaSolicitud" asp-action="ListaSolicitudes">Ver Lista de Solicitudes</a></li>
                                     </ul>
                                 </li>
@@ -53,8 +53,8 @@
                                         Monitoreo
                                     </a>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" asp-controller="Monitoreo" asp-action="Index">Panel de Monitoreo</a></li>
-                                        <li><a class="dropdown-item" asp-controller="Trabajadores" asp-action="Index">Trabajadores</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Monitoreo" asp-action="Index">Monitoreo de Subsidios</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Trabajadores" asp-action="Index">Días acumulados</a></li>
                                     </ul>
                                 </li>
 
@@ -63,17 +63,18 @@
                                         Notificaciones
                                     </a>
                                     <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="/Simulaciones/CrearNotificacion">Simuladas</a></li>
-                                        <li><a class="dropdown-item" asp-controller="NotificacionesGenerales" asp-action="Crear">Generales</a></li>
+                                        <li><a class="dropdown-item" href="/Simulaciones/CrearNotificacion">Notificar actividadel trabajador</a></li>
                                     </ul>
                                 </li>
                             }
                             else if (rol == "Bienestar")
                             {
                                 <li class="nav-item">
+                                    <li><a class="nav-link text-dark" asp-controller="Lista" asp-action="Index">Lista</a></li>
                                     <a class="nav-link text-dark" asp-controller="SistemaSolicitud" asp-action="ListaSolicitudes">
                                         Ver Lista de Solicitudes
                                     </a>
+                                    <li><a class="nav-link text-dark" asp-controller="Lista" asp-action="DescansosProlongados">Subsidios</a></li>
                                 </li>
                             }
                             else if (rol == "Empleado" || rol == "Trabajador")
@@ -87,7 +88,7 @@
 
                                         @if (rol == "Trabajador")
                                         {
-                                            <li><a class="dropdown-item" asp-controller="Simulaciones" asp-action="MisNotificaciones">Mis Notificaciones</a></li>
+                                            <li><a class="dropdown-item" asp-controller="Simulaciones" asp-action="MisNotificaciones">Notificaciones de inactividad</a></li>
                                         }
                                     </ul>
                                 </li>

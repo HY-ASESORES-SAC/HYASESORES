@@ -2,7 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using proyectoIngSoft.Data;
@@ -73,15 +77,40 @@ namespace proyectoIngSoft.Controllers
         public IActionResult Login() => View();
 
         [HttpPost]
-     [HttpPost]
-public IActionResult Login(string email, string password)
+public async Task<IActionResult> Login(string email, string password)
 {
     var user = _context.DbSetUser.FirstOrDefault(u => u.Email == email && u.Password == password);
     if (user != null)
     {
-        // Guardar sesión usando Email
+        // 🔹 Crear Claims para el usuario
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.IdUser.ToString()),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.Surname, user.Apellidos),
+            new Claim(ClaimTypes.Role, user.Rol),
+            new Claim("Dni", user.Dni)
+        };
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = true,
+            ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(30)
+        };
+
+        // 🔹 Autenticar con cookies
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(claimsIdentity),
+            authProperties);
+
+        // 🔹 Guardar también en sesión para compatibilidad con código existente
         HttpContext.Session.SetString("User", user.Email);
         HttpContext.Session.SetString("Rol", user.Rol);
+        HttpContext.Session.SetInt32("UserId", user.IdUser);
+
         return RedirectToAction("Index", "Home");
     }
 
@@ -90,8 +119,9 @@ public IActionResult Login(string email, string password)
 }
 
 
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             HttpContext.Session.Clear();
             return RedirectToAction("Login");
         }

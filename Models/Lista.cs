@@ -18,5 +18,6 @@ namespace proyectoIngSoft.Models
         public DateTime FechaSolicitud { get; set; }
         public string Estado { get; set; }
         public int IdUser { get; set; }
+        public string EstadoProcesado { get; set; }
     }
 }
