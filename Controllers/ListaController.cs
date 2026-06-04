@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -307,29 +308,27 @@ namespace proyectoIngSoft.Controllers
 
       
         [HttpPost]
-        public IActionResult ValidarSubsidioA(int id)
+        public JsonResult ValidarSubsidioA(int id)
         {
-            try
+            var descanso = _context.DbSetDescanso.Find(id);
+            if (descanso != null)
             {
-                // Usa la DbSet correcta en tu ApplicationDbContext
-                var descanso = _context.DbSetDescanso.FirstOrDefault(d => d.IdDescanso == id);
-                if (descanso == null)
-                    return Json(new { success = false, message = "Descanso no encontrado." });
+                // Random para decidir estado
+                Random rnd = new Random();
+                string[] estados = { "Subsidio", "Rechazado" };
+                string estadoSeleccionado = estados[rnd.Next(estados.Length)];
 
-                // Cambiamos su estado a "Subsidio"
-                descanso.EstadoSubsidioA = "Subsidio";
-
-                _context.Update(descanso);
+                // Asignar y guardar
+                descanso.EstadoSubsidioA = estadoSeleccionado;
                 _context.SaveChanges();
 
-                return Json(new { success = true });
+                // Devolver estado real al frontend
+                return Json(new { success = true, estado = estadoSeleccionado });
             }
-            catch (Exception ex)
-            {
-                // Devuelve el mensaje del error para debug en el frontend (temporal)
-                return Json(new { success = false, message = ex.Message });
-            }
+
+            return Json(new { success = false });
         }
+
 
 
         public IActionResult DetalleProlongado(int descansoId)

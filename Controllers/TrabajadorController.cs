@@ -20,7 +20,7 @@ namespace proyectoIngSoft.Controllers
         {
             _logger = logger;
             _context = context;
-        }        
+        }
 
         // GET: /Trabajadores/Index
         public async Task<IActionResult> Index(string? filtro)

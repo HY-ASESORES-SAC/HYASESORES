@@ -1,0 +1,182 @@
+@model List<proyectoIngSoft.Models.Descanso>
+@{
+    ViewData["Title"] = "Historial de Descansos Médicos y Subsidios";
+    var total = ViewBag.TotalRegistros as int?;
+    var tipos = ViewBag.PorTipo as Dictionary<string, int>;
+    var estados = ViewBag.EstadoESSALUD as Dictionary<string, int>;
+}
+
+<div class="container mt-4">
+
+    <!-- 🔹 TARJETAS DE RESUMEN -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-primary text-white text-center">
+                <div class="card-body">
+                    <h2>@total</h2>
+                    <p class="mb-0">Total Registros</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="row g-2">
+                @foreach (var kv in tipos)
+                {
+                    <div class="col-md-4">
+                        <div class="card text-center border-0 shadow-sm" style="background-color:#f8f9fa;">
+                            <div class="card-body py-2">
+                                <h5 class="mb-0">@kv.Value</h5>
+                                <small class="text-muted">@kv.Key</small>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔹 ESTADOS ESSALUD -->
+    <div class="row mb-4">
+        @foreach (var kv in estados)
+        {
+            string color = kv.Key switch
+            {
+                "Válido" => "bg-success text-white",
+                "En observación" => "bg-warning text-dark",
+                "En Proceso" => "bg-info text-dark",
+                "No Válido" => "bg-danger text-white",
+                _ => "bg-secondary text-white"
+            };
+
+            <div class="col-md-3">
+                <div class="card text-center shadow-sm border-0 @color">
+                    <div class="card-body py-2">
+                        <h5 class="mb-0">@kv.Value</h5>
+                        <small>@kv.Key</small>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- 🔹 TABLA PRINCIPAL -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0">Historial de Descansos Médicos y Subsidios</h4>
+                <small>Sistema de Gestión y Reportes</small>
+            </div>
+            <form asp-action="ExportarPDF" method="post">
+                <button type="submit" class="btn btn-success">Exportar a PDF</button>
+            </form>
+        </div>
+
+        <div class="card-body">
+            <div class="mb-3">
+                <button id="btnOcultarFiltros" class="btn btn-outline-primary">Ocultar Filtros</button>
+                <button class="btn btn-outline-secondary" onclick="location.reload()">Actualizar Informe</button>
+                <a href="/Historial/Index" class="btn btn-outline-danger float-end">Limpiar Filtros</a>
+            </div>
+
+            <div id="panelFiltros" class="border rounded p-3 mb-4 bg-light">
+                <form method="get" asp-action="Index" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Tipo</label>
+                        <select name="tipo" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="Descanso Médico">Descanso Médico</option>
+                            <option value="Subsidio">Subsidio</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Motivo</label>
+                        <select name="motivo" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="Enfermedad">Enfermedad</option>
+                            <option value="Maternidad">Maternidad</option>
+                            <option value="Paternidad">Paternidad</option>
+                            <option value="Accidente">Accidente</option>
+                            <option value="Fallecimiento">Fallecimiento</option>
+                            <option value="Enfermedad Familiar">Enfermedad Familiar</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Estado Subsidio</label>
+                        <select name="estado" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Aprobado">Aprobado</option>
+                            <option value="Rechazado">Rechazado</option>
+                        </select>
+                    </div>
+                    <div class="col-12 text-end">
+                        <button type="submit" class="btn btn-primary">Aplicar Filtros</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Empleado</th>
+                            <th>DNI</th>
+                            <th>Tipo</th>
+                            <th>Motivo</th>
+                            <th>Estado Subsidio (Jefe)</th>
+                            <th>Estado ESSALUD</th>
+                            <th>F. Descanso</th>
+                            <th>F. Fin</th>
+                            <th>Días</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in Model)
+                        {
+                            var dias = (d.FechaFin - d.FechaIni).TotalDays;
+                            <tr>
+                                <td>@d.IdDescanso</td>
+                                <td>@d.User?.NombreCompleto</td>
+                                <td>@d.User?.Dni</td>
+                                <td>@d.TipoDescanso?.Nombre</td>
+                                <td>
+                                    @{
+                                        if (d.EnfermedadId.HasValue) { <text>Enfermedad</text>; }
+                                        else if (d.MaternidadId.HasValue) { <text>Maternidad</text>; }
+                                        else if (d.PaternidadId.HasValue) { <text>Paternidad</text>; }
+                                        else if (d.AccidenteId.HasValue) { <text>Accidente</text>; }
+                                        else if (d.FallecimientoId.HasValue) { <text>Fallecimiento</text>; }
+                                        else if (d.EnfermedadFamId.HasValue) { <text>Enfermedad Familiar</text>; }
+                                        else { <text>-</text>; }
+                                    }
+                                </td>
+                                <td>@d.EstadoSubsidioJ</td>
+                                <td>@d.EstadoESSALUD</td>
+                                <td>@d.FechaIni.ToString("dd/MM/yyyy")</td>
+                                <td>@d.FechaFin.ToString("dd/MM/yyyy")</td>
+                                <td>@dias</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.getElementById("btnOcultarFiltros").addEventListener("click", function () {
+        const panel = document.getElementById("panelFiltros");
+        if (panel.style.display === "none") {
+            panel.style.display = "block";
+            this.textContent = "Ocultar Filtros";
+        } else {
+            panel.style.display = "none";
+            this.textContent = "Mostrar Filtros";
+        }
+    });
+</script>
+}

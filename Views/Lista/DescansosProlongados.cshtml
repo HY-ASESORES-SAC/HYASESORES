@@ -82,18 +82,32 @@
                                         {
                                             <span class="badge estado-subsidio">Subsidio</span>
                                         }
-                                        else
+                                        else if (d.EstadoSubsidioA == "Rechazado")
+                                        {
+                                            <span class="badge estado-rechazado">Rechazado</span>
+                                        }
+                                        
+
+                                        else 
                                         {
                                             <span class="badge estado-activo">@d.EstadoSubsidioA</span>
                                         }
                                     </td>
-                                    <td>
+                                <td>
+
     @if (d.EstadoSubsidioA == "Subsidio")
     {
         <span class="badge text-success bg-light border border-success fw-semibold px-3 py-2">
             ✓ convertido
         </span>
     }
+    else if (d.EstadoSubsidioA == "Rechazado")
+    {
+        <span class="badge text-danger bg-light border border-danger fw-semibold px-3 py-2">
+            ✗ rechazado
+        </span>
+    }
+    
     else
     {
         <button class="btn btn-ver" onclick="verDetalleProlongado(@d.IdDescanso)">
@@ -200,6 +214,11 @@ body { background-color: #f8f9fa; }
     color: #116b2b;
     font-weight: 500;
 }
+.badge.estado-rechazado {
+    background-color: #ffe2e5;
+    color: #a12632;
+    font-weight: 500;
+}
 .badge.estado-activo {
     background-color: #e0e0e0;
     color: #444;
@@ -267,14 +286,22 @@ function verDetalleProlongado(id) {
 }
 
 function validarSubsidioProlongado(id) {
-    if (!confirm("¿Confirmar validación de subsidio para este descanso?")) return;
     $.ajax({
         type: "POST",
         url: "/Lista/ValidarSubsidioA",
         data: { id: id },
         success: function (response) {
             if (response.success) {
-                alert("Descanso validado correctamente como Subsidio ✅");
+                let estado = response.estado;
+
+                // Mostrar mensaje según el resultado real
+                let mensaje = estado === "Subsidio"
+                    ? "Descanso validado correctamente como Subsidio ✅"
+                    : "Descanso rechazado ❌";
+
+                alert(mensaje);
+
+                // Refrescar la vista para reflejar el nuevo estado
                 location.reload();
             } else {
                 alert("Error: " + response.message);
@@ -285,4 +312,5 @@ function validarSubsidioProlongado(id) {
         }
     });
 }
+
 </script>

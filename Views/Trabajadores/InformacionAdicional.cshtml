@@ -1,0 +1,78 @@
+@model proyectoIngSoft.Models.User
+
+@{
+    ViewData["Title"] = "Información Adicional del Trabajador";
+}
+
+<div class="container mt-4">
+    <a asp-action="SolicitarInformacion" class="btn btn-outline-secondary mb-3">
+        ← Volver
+    </a>
+
+    <h4>Información Adicional del Trabajador</h4>
+    <p class="text-muted">Vista completa de datos del empleado</p>
+
+    <div class="card p-4 shadow-sm">
+        <div class="d-flex align-items-center mb-3">
+            <div class="me-3">
+                <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" width="60" />
+            </div>
+            <div>
+                <h5>@Model.Username @Model.Apellidos</h5>
+                <p class="mb-0">DNI: <strong>@Model.Dni</strong></p>
+            </div>
+        </div>
+
+        <hr />
+
+        <h6><i class="bi bi-person-lines-fill"></i> Información Personal</h6>
+        <p><strong>Nombre:</strong> @Model.Username</p>
+        <p><strong>Apellido:</strong> @Model.Apellidos</p>
+        <p><strong>DNI:</strong> @Model.Dni</p>
+        <p><strong>Ubigeo:</strong> @Model.Ubigeo</p>
+
+        <h6 class="mt-4"><i class="bi bi-geo-alt"></i> Ubicación Laboral</h6>
+        <p><strong>Sede:</strong> San Isidro</p>
+        <p><strong>Departamento:</strong> Lima Metropolitana</p>
+        <p><strong>Distrito:</strong> @Model.Distrito</p>
+
+        <h6 class="mt-4"><i class="bi bi-briefcase"></i> Información Laboral</h6>
+        <p><strong>Puesto Actual:</strong> @Model.CargoLaboral</p>
+        <p><strong>Afiliación:</strong> <span class="badge bg-primary">SEGURO</span></p>
+
+        <h6 class="mt-4"><i class="bi bi-heart-pulse"></i> Información de Salud</h6>
+        <p><strong>Enfermedad Crónica:</strong> Diabetes</p>
+        <p><strong>Fecha de Diagnóstico:</strong> 19/05/2019</p>
+
+        <div class="alert alert-info mt-4">
+            <strong>Resumen de Antigüedad:</strong><br />
+            El trabajador @Model.Username @Model.Apellidos inició sus labores el 14 de marzo de 2020,
+            acumulando aproximadamente 5 años de servicio en la empresa.
+        </div>
+
+        <div class="mt-4 text-end">
+            <button class="btn btn-outline-secondary" onclick="window.history.back()">Volver a la Lista</button>
+            <button class="btn btn-outline-primary" onclick="imprimirInformacion()">Imprimir Información</button>
+            <button class="btn btn-success" onclick="exportarPDF()">Exportar PDF</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+    async function exportarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.text("Información Adicional del Trabajador", 10, 10);
+        doc.text(document.body.innerText.slice(0, 900), 10, 20);
+        doc.save("InformacionTrabajador.pdf");
+        alert("📄 PDF exportado correctamente.");
+    }
+
+    function imprimirInformacion() {
+        alert("🖨️ No se encontró dispositivo de impresión disponible.");
+    }
+</script>
+}

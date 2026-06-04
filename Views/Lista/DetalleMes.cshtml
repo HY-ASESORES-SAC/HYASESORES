@@ -1,0 +1,251 @@
+@model proyectoIngSoft.Models.DetalleMesViewModel
+
+@{
+    ViewData["Title"] = $"Detalle de Solicitudes - {Model.NombreMes} {Model.Año}";
+    var totalSolicitudes = Model.Solicitudes.Count;
+    var subsidiosCount = Model.Solicitudes.Count(s => s.Tipo == "Subsidio");
+    var descansosCount = Model.Solicitudes.Count(s => s.Tipo == "Descanso Médico");
+}
+
+<div class="container-fluid py-4">
+    <!-- HEADER CON BOTÓN VOLVER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="@Url.Action("ReporteMensual", "Lista", new { año = Model.Año })" 
+               class="btn btn-outline-secondary btn-sm mb-2">
+                ← Volver al Reporte Mensual
+            </a>
+            <h4 class="fw-bold text-primary mb-1">Total de Solicitudes Revisadas</h4>
+            <p class="text-muted mb-0">@Model.NombreMes @Model.Año - Detalle completo de todas las solicitudes</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-primary fs-6">@totalSolicitudes solicitudes</span>
+        </div>
+    </div>
+
+    <!-- RESUMEN RÁPIDO -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center py-3">
+                    <h6 class="text-muted mb-1">Total Solicitudes</h6>
+                    <h3 class="fw-bold text-primary mb-0">@totalSolicitudes</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center py-3">
+                    <h6 class="text-muted mb-1">Subsidios</h6>
+                    <h3 class="fw-bold text-info mb-0">@subsidiosCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 bg-light">
+                <div class="card-body text-center py-3">
+                    <h6 class="text-muted mb-1">Descansos Médicos</h6>
+                    <h3 class="fw-bold text-warning mb-0">@descansosCount</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA DETALLADA -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="fw-semibold mb-0">Detalle de Solicitudes</h5>
+            <input type="text" id="buscarSolicitudes" class="form-control form-control-sm w-auto" 
+                   placeholder="🔍 Buscar..." onkeyup="filtrarTabla()">
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="tablaSolicitudes">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="fw-semibold">ID</th>
+                            <th class="fw-semibold">Empleado</th>
+                            
+                            <th class="fw-semibold">Tipo</th>
+                            <th class="fw-semibold">Estado</th>
+                            <th class="fw-semibold">Fecha Solicitud</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var solicitud in Model.Solicitudes)
+                        {
+                            <tr>
+                                <td class="fw-mono">#@solicitud.IdUnico</td>
+                                <td>
+                                    <strong>@solicitud.Empleado</strong>
+                                </td>
+                            
+                               <td>
+    @{
+        var backgroundColor = "";
+        var textColor = "";
+        
+        switch(solicitud.Tipo.ToLower())
+        {
+            case "accidente":
+                backgroundColor = "bg-danger bg-opacity-10"; // Fondo rojo muy claro
+                textColor = "text-danger"; // Texto rojo oscuro
+                break;
+            case "enfermedad":
+                backgroundColor = "bg-warning bg-opacity-10"; // Fondo naranja muy claro
+                textColor = "text-warning"; // Texto naranja oscuro
+                break;
+            case "maternidad":
+                backgroundColor = "bg-info bg-opacity-10"; // Fondo celeste claro
+                textColor = "text-info"; // Texto azul oscuro
+                break;
+            case "paternidad":
+                backgroundColor = "bg-primary bg-opacity-10"; // Fondo azul muy claro
+                textColor = "text-primary"; // Texto azul oscuro
+                break;
+            case "enfermedad familiar":
+                backgroundColor = "bg-secondary bg-opacity-10"; // Fondo gris muy claro
+                textColor = "text-secondary"; // Texto gris oscuro
+                break;
+            case "fallecimiento":
+                backgroundColor = "bg-dark bg-opacity-10"; // Fondo gris oscuro claro
+                textColor = "text-dark"; // Texto negro
+                break;
+            default:
+                backgroundColor = "bg-light bg-opacity-10"; // Fondo blanco
+                textColor = "text-muted"; // Texto gris
+                break;
+        }
+    }
+    <span class="badge @backgroundColor @textColor border-0 fw-semibold px-3 py-2">
+        @solicitud.Tipo
+    </span>
+</td>
+                                <td>
+                                    @if (solicitud.Estado == "Subsidio" || solicitud.Estado == "Aceptado")
+                                    {
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                                            ✓ @solicitud.Estado
+                                        </span>
+                                    }
+                                    else if (solicitud.Estado == "Rechazado")
+                                    {
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
+                                            ✗ @solicitud.Estado
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">
+                                            ⏳ @solicitud.Estado
+                                        </span>
+                                    }
+                                </td>
+                                <td>@solicitud.FechaSolicitud.ToString("dd/MM/yyyy")</td>
+                                
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- ESTILOS -->
+<style>
+    .fw-mono {
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+    }
+    
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: none;
+    }
+    
+    .table th {
+        font-size: 0.9rem;
+        color: #495057;
+        border-bottom: 2px solid #e9ecef;
+        padding: 1rem 0.75rem;
+        background-color: #f8f9fa;
+    }
+    
+    .table td {
+        font-size: 0.9rem;
+        vertical-align: middle;
+        padding: 1rem 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+    
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .form-control-sm {
+        font-size: 0.85rem;
+        border-radius: 6px;
+    }
+</style>
+
+<!-- SCRIPTS -->
+@section Scripts {
+    <script>
+    // Filtrar tabla
+    function filtrarTabla() {
+        const texto = document.getElementById("buscarSolicitudes").value.toLowerCase();
+        const filas = document.querySelectorAll("#tablaSolicitudes tbody tr");
+        filas.forEach(fila => {
+            const contenido = fila.innerText.toLowerCase();
+            fila.style.display = contenido.includes(texto) ? "" : "none";
+        });
+    }
+
+    // Ver detalle de solicitud
+    function verDetalleSolicitud(idDescanso, tipo) {
+        const modal = new bootstrap.Modal(document.getElementById('detalleSolicitudModal'));
+        
+        // Determinar qué controlador usar según el tipo
+        const url = tipo === 'Subsidio' 
+            ? '/Lista/DetalleProlongado' 
+            : '/Lista/DetalleDescansoProcesadas';
+            
+        document.getElementById('detalleSolicitudContenido').innerHTML = `
+            <div class='text-center text-muted p-4'>
+                <div class='spinner-border text-primary'></div>
+                <p class='mt-2'>Cargando detalles...</p>
+            </div>`;
+            
+        modal.show();
+        
+        $.ajax({
+            url: url,
+            type: 'GET',
+            data: { descansoId: idDescanso },
+            success: function (html) {
+                $('#detalleSolicitudContenido').html(html);
+            },
+            error: function () {
+                $('#detalleSolicitudContenido').html(`
+                    <div class='alert alert-danger text-center'>
+                        Error al cargar los detalles de la solicitud.
+                    </div>
+                `);
+            }
+        });
+    }
+    </script>
+}

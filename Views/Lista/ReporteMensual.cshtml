@@ -1,0 +1,328 @@
+@model List<proyectoIngSoft.Models.ReporteMensualViewModel>
+
+@{
+    ViewData["Title"] = "Reporte de Subsidios y Descansos Médicos";
+    var añoSeleccionado = ViewBag.AñoSeleccionado as int? ?? DateTime.Now.Year;
+    var añosDisponibles = ViewBag.AñosDisponibles as List<int> ?? new List<int>();
+    
+    var totalGeneralRevisados = Model.Sum(x => x.TotalRevisados);
+    var totalGeneralSubsidios = Model.Sum(x => x.Subsidios);
+    var totalGeneralDescansos = Model.Sum(x => x.DescansosMedicos);
+    var totalGeneralAprobados = Model.Sum(x => x.Aprobados);
+    var totalGeneralRechazados = Model.Sum(x => x.Rechazados);
+    
+    // Calcular el promedio de aprobados (porcentaje)
+    var promedioAprobados = totalGeneralRevisados > 0 ? 
+        Math.Round((double)totalGeneralAprobados / totalGeneralRevisados * 100, 1) : 0;
+    
+    var hayDatos = Model.Any();
+}
+
+<div class="container-fluid py-4">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-primary mb-1">Reporte de Subsidios y Descansos Médicos</h4>
+            <p class="text-muted mb-0">Análisis mensual de revisión, aprobación y rechazo de solicitudes</p>
+        </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h6 class="fw-semibold mb-3">Filtros:</h6>
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <label class="form-label">Año</label>
+                    <select class="form-select" id="selectAño" onchange="cambiarAño(this.value)">
+                        @foreach (var año in añosDisponibles)
+                        {
+                            if (año == añoSeleccionado)
+                            {
+                                <option value="@año" selected>@año</option>
+                            }
+                            else
+                            {
+                                <option value="@año">@año</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-9">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-light text-dark">Año @añoSeleccionado</span>
+                        <span class="badge bg-light text-dark">Todos los meses</span>
+                        @if (!hayDatos)
+                        {
+                            <span class="badge bg-warning text-dark">No hay datos para este año</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (hayDatos)
+    {
+        <!-- LOS 4 CUADRITOS DE RESUMEN -->
+        <div class="row mb-4">
+            <!-- Total Revisados -->
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center py-4">
+                        <h5 class="card-title text-muted mb-2">Total Revisados</h5>
+                        <h2 class="display-5 fw-bold text-primary mb-0">@totalGeneralRevisados</h2>
+                        <small class="text-muted">solicitudes procesadas</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Aprobados -->
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center py-4">
+                        <h5 class="card-title text-muted mb-2">Aprobados</h5>
+                        <h2 class="display-5 fw-bold text-success mb-0">@totalGeneralAprobados</h2>
+                        <small class="text-muted">solicitudes aprobadas</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Rechazados -->
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center py-4">
+                        <h5 class="card-title text-muted mb-2">Rechazados</h5>
+                        <h2 class="display-5 fw-bold text-danger mb-0">@totalGeneralRechazados</h2>
+                        <small class="text-muted">solicitudes rechazadas</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Promedio -->
+            <div class="col-md-3 mb-3">
+                <div class="card border-0 bg-light">
+                    <div class="card-body text-center py-4">
+                        <h5 class="card-title text-muted mb-2">Tasa de Aprobación</h5>
+                        <h2 class="display-5 fw-bold text-info mb-0">@promedioAprobados%</h2>
+                        <small class="text-muted">porcentaje de éxito</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESUMEN NUMÉRICO -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 bg-white">
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-4 border-end">
+                                <h6 class="text-muted mb-1">Subsidios</h6>
+                                <h4 class="fw-bold text-dark">@totalGeneralSubsidios</h4>
+                            </div>
+                            <div class="col-md-4 border-end">
+                                <h6 class="text-muted mb-1">Descansos Médicos</h6>
+                                <h4 class="fw-bold text-dark">@totalGeneralDescansos</h4>
+                            </div>
+                            <div class="col-md-4">
+                                <h6 class="text-muted mb-1">Total General</h6>
+                                <h4 class="fw-bold text-dark">@totalGeneralRevisados</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABLA PRINCIPAL -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h5 class="fw-semibold mb-0">Detalle por Mes</h5>
+                <small class="text-muted">Haga clic en cualquier fila para ver el detalle completo del mes</small>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="fw-semibold">Mes</th>
+                                <th class="text-center fw-semibold">Total Revisados</th>
+                                <th class="text-center fw-semibold">Subsidios</th>
+                                <th class="text-center fw-semibold">Descansos Médicos</th>
+                                <th class="text-center fw-semibold">Aprobados</th>
+                                <th class="text-center fw-semibold">Rechazados</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var mes in Model)
+                            {
+                                <tr style="cursor: pointer;" 
+                                    onclick="verDetalleMes(@mes.Año, @mes.Mes, '@mes.NombreMes')"
+                                    class="hover-row">
+                                    <td class="fw-semibold">@mes.NombreMes</td>
+                                    <td class="text-center fw-bold">@mes.TotalRevisados</td>
+                                    <td class="text-center">@mes.Subsidios</td>
+                                    <td class="text-center">@mes.DescansosMedicos</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                                            ✓ @mes.Aprobados
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
+                                            ✗ @mes.Rechazados
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td class="fw-bold">TOTAL</td>
+                                <td class="text-center fw-bold">@totalGeneralRevisados</td>
+                                <td class="text-center fw-bold">@totalGeneralSubsidios</td>
+                                <td class="text-center fw-bold">@totalGeneralDescansos</td>
+                                <td class="text-center fw-bold">@totalGeneralAprobados</td>
+                                <td class="text-center fw-bold">@totalGeneralRechazados</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- MENSAJE CUANDO NO HAY DATOS -->
+        <div class="card shadow-sm border-0">
+            <div class="card-body text-center py-5">
+                <div class="mb-4">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                </div>
+                <h4 class="text-muted mb-3">No hay datos disponibles</h4>
+                <p class="text-muted mb-4">
+                    No se encontraron solicitudes de subsidios o descansos médicos para el año @añoSeleccionado.
+                </p>
+                <div class="d-flex justify-content-center gap-2">
+                    <span class="badge bg-light text-dark">Año @añoSeleccionado</span>
+                    <span class="badge bg-light text-dark">Sin datos</span>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- ESTILOS MEJORADOS -->
+<style>
+    .hover-row:hover {
+        background-color: #f8f9fa !important;
+        transform: translateY(-1px);
+        transition: all 0.2s ease;
+    }
+    
+    body { 
+        background-color: #f8f9fa; 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: none;
+    }
+    
+    .card.bg-light {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .card.bg-light:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.12) !important;
+    }
+    
+    .display-5 {
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+    
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table th {
+        font-size: 0.9rem;
+        color: #495057;
+        border-bottom: 2px solid #e9ecef;
+        padding: 1rem 0.75rem;
+        background-color: #f8f9fa;
+    }
+    
+    .table td {
+        font-size: 0.9rem;
+        vertical-align: middle;
+        padding: 1rem 0.75rem;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .badge {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    
+    .form-select {
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        font-size: 0.9rem;
+    }
+    
+    .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    }
+    
+    tfoot tr {
+        background-color: #f1f3f4 !important;
+    }
+    
+    tfoot td {
+        font-size: 1rem;
+        border-top: 2px solid #dee2e6;
+        font-weight: 600;
+    }
+    
+    .bi-inbox {
+        opacity: 0.5;
+    }
+    
+    .border-end {
+        border-right: 1px solid #dee2e6 !important;
+    }
+    
+    .text-primary { color: #2c5aa0 !important; }
+    .text-success { color: #28a745 !important; }
+    .text-danger { color: #dc3545 !important; }
+    .text-info { color: #17a2b8 !important; }
+</style>
+
+<!-- SCRIPTS -->
+@section Scripts {
+    <script>
+    function cambiarAño(año) {
+        window.location.href = '/Lista/ReporteMensual?año=' + año;
+    }
+
+    // Función para ver detalle del mes
+    function verDetalleMes(año, mes, nombreMes) {
+        window.location.href = '/Lista/DetalleMes?año=' + año + '&mes=' + mes;
+    }
+
+    // Opcional: Agregar funcionalidad para exportar a PDF
+    function exportarPDF() {
+        alert('Funcionalidad de exportación a PDF próximamente');
+    }
+    </script>
+}

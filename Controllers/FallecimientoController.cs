@@ -27,8 +27,9 @@ namespace proyectoIngSoft.Controllers
         {
             return View();
         }
+
         [HttpPost]
-       
+        [ValidateAntiForgeryToken]
         public IActionResult Registrar(Fallecimiento model)
         {
             if (ModelState.IsValid)
@@ -39,6 +40,7 @@ namespace proyectoIngSoft.Controllers
                     var user = UserHelper.GetCurrentUser(HttpContext, _context);
                     if (user == null)
                     {
+                        // No hay usuario autenticado
                         ViewData["Message"] = "No hay usuario autenticado. Por favor inicie sesión.";
                         return RedirectToAction("Login", "Auth");
                     }
@@ -47,7 +49,7 @@ namespace proyectoIngSoft.Controllers
                     _context.DbSetFallecimiento.Add(model);
                     _context.SaveChanges();
 
-                    // 3. Crear Descanso
+                    // 3. Crear Descanso (usar conversión segura de fechas)
                     var descanso = new Descanso
                     {
                         UserId = user.IdUser,               // FK a T_Usuarios
@@ -61,7 +63,7 @@ namespace proyectoIngSoft.Controllers
                     _context.DbSetDescanso.Add(descanso);
                     _context.SaveChanges();
 
-                    ViewData["Message"] = "Accidente registrado con éxito";
+                    ViewData["Message"] = "Fallecimiento registrado con éxito";
                     return RedirectToAction("Index", "DocumentoMedico", new { descansoId = descanso.IdDescanso });
                 }
                 catch (Exception ex)
@@ -75,14 +77,38 @@ namespace proyectoIngSoft.Controllers
                 ViewData["Message"] = "Datos de entrada no válidos";
             }
             return View("Index");
-            
-
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
-            return View("Error!");
+            return View("Error");
+        }
+
+		// Método auxiliar para convertir fechas a UTC de forma robusta
+        private DateTime ConvertToUtc(object dateObj)
+        {
+            if (dateObj == null)
+                throw new ArgumentNullException(nameof(dateObj), "La fecha no puede ser null");
+
+            if (dateObj is DateTime dt)
+            {
+                return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+            }
+
+#if NET6_0_OR_GREATER
+            if (dateObj is DateOnly d)
+            {
+                return DateTime.SpecifyKind(d.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+            }
+#endif
+            var s = dateObj.ToString();
+            if (DateTime.TryParse(s, out var parsed))
+            {
+                return DateTime.SpecifyKind(parsed, DateTimeKind.Utc);
+            }
+
+            throw new InvalidOperationException("Tipo de fecha no soportado: " + dateObj.GetType());
         }
     }
 }
